@@ -1,8 +1,4 @@
-//void al_draw_filled_circle(float cx, float cy, float r, ALLEGRO_COLOR color)
-//typedef int( * dzialanieT )( int, int );
 typedef void( * drawT )( float, float, float, ALLEGRO_COLOR );
-
-// void al_draw_filled_rectangle(float x1, float y1, float x2, float y2, ALLEGRO_COLOR color)
 typedef void(* draw_rectT)(float, float, float, float, ALLEGRO_COLOR);
 
 
@@ -19,7 +15,7 @@ public:
   int get_x();
   int get_y();
   void set_draw_function(drawT d) {draw = d;}
-  void make_ball_move();
+  void make_ball_move(int x, int y, int rozm);
   void reverse_y();
   void reverse_x();
 };

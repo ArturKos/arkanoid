@@ -1,12 +1,11 @@
 #include "game_objects.h"
 
-void ball::make_ball_move(){
+void ball::make_ball_move(int x, int y, int rozm){
   rx+=rx_move;
   ry+=ry_move;
   if((rx+BALL_SIZE > BOARD_WIDTH) || (rx-BALL_SIZE < 0)) reverse_x();
-  if((ry+BALL_SIZE > BOARD_HEIGHT)  || (ry-BALL_SIZE < 0)) reverse_y();
-  if(rx_move<0) rx_move=rx_move; else rx_move=rx_move;
-  if(ry_move<0) ry_move=ry_move; else ry_move=ry_move;
+  if((ry+BALL_SIZE > y && rx+BALL_SIZE > x && rx+BALL_SIZE<x+3*rozm)  || (ry-BALL_SIZE < 0)) reverse_y();
+  if(ry > BOARD_HEIGHT) new_game();
   draw(rx,  ry,  BALL_SIZE, al_map_rgba(200,28, 0,60));
 }
 
@@ -60,7 +59,6 @@ void tiles::check_collisions(){
     if(game_tiles[i]->get_visible())
     if((game_ball->get_x()-BALL_SIZE <= game_tiles[i]->get_x()+size_width && game_ball->get_x()-BALL_SIZE >= game_tiles[i]->get_x()) && (game_ball->get_y()-BALL_SIZE <= game_tiles[i]->get_y()+size_height) ){
      game_tiles[i]->set_visible(false);
-  //   game_ball->reverse_x();
      game_ball->reverse_y();
     }
     if(game_tiles[i]->get_visible())
