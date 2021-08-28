@@ -1,5 +1,5 @@
 #define BACKGROUND_FILE     "background.png"
-#define BALL_SIZE           40
+#define BALL_SIZE           15
 #define TILES_IN_COLUMN     10
 #define TILES_IN_ROW        5
 #define NUMBER_OF_TILES     TILES_IN_COLUMN*TILES_IN_ROW

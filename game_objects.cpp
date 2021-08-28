@@ -3,14 +3,15 @@
 void ball::make_ball_move(int x, int y, int rozm){
   rx+=rx_move;
   ry+=ry_move;
-  if((rx+BALL_SIZE > BOARD_WIDTH) || (rx-BALL_SIZE < 0)) reverse_x();
-  if((ry+BALL_SIZE > y && rx+BALL_SIZE > x && rx+BALL_SIZE<x+3*rozm)  || (ry-BALL_SIZE < 0)) reverse_y();
+  if((rx+BALL_SIZE >= BOARD_WIDTH) || (rx-BALL_SIZE <= 0)) reverse_x();
+  if((ry+BALL_SIZE >= y && ry+BALL_SIZE < y+5 && rx-BALL_SIZE >= x && rx+BALL_SIZE<=x+3*rozm && get_ry_move()>0)  || (ry-BALL_SIZE <= 0)) reverse_y();
   if(ry > BOARD_HEIGHT) new_game();
-  draw(rx,  ry,  BALL_SIZE, al_map_rgba(200,28, 0,60));
+  draw(rx, ry, BALL_SIZE, al_map_rgba(200,28, 0,60));
 }
 
 int ball::get_x() { return rx;}
 int ball::get_y() { return ry;}
+int ball::get_ry_move() { return ry_move;}
 void ball::reverse_y() { ry_move = -ry_move;}
 void ball::reverse_x() { rx_move = -rx_move;}
 void ball::new_game() {
@@ -55,13 +56,17 @@ void tiles::new_game(){
   }
 }
 void tiles::check_collisions(){
+  for(int i = 0; i < TILES_IN_COLUMN*TILES_IN_ROW; i++)
+  if(game_tiles[i]->get_visible())
+    draw(game_tiles[i]->get_x(), game_tiles[i]->get_y(), game_tiles[i]->get_x()+size_width, game_tiles[i]->get_y()+size_height, game_tiles[i]->get_color() );
+
   for(int i = 0; i < TILES_IN_COLUMN*TILES_IN_ROW; i++){
     if(game_tiles[i]->get_visible())
-    if((game_ball->get_x()-BALL_SIZE <= game_tiles[i]->get_x()+size_width && game_ball->get_x()-BALL_SIZE >= game_tiles[i]->get_x()) && (game_ball->get_y()-BALL_SIZE <= game_tiles[i]->get_y()+size_height) ){
+    if((game_ball->get_x()+BALL_SIZE <= game_tiles[i]->get_x()+size_width && game_ball->get_x()-BALL_SIZE >= game_tiles[i]->get_x()) && (game_ball->get_y()-BALL_SIZE <= game_tiles[i]->get_y()+size_height) ){
      game_tiles[i]->set_visible(false);
+     if(game_ball->get_ry_move()<0)
      game_ball->reverse_y();
+     break;
     }
-    if(game_tiles[i]->get_visible())
-      draw(game_tiles[i]->get_x(), game_tiles[i]->get_y(), game_tiles[i]->get_x()+size_width, game_tiles[i]->get_y()+size_height, game_tiles[i]->get_color() );
   }
 }

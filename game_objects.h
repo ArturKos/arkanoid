@@ -14,6 +14,7 @@ public:
   void new_game();
   int get_x();
   int get_y();
+  int get_ry_move();
   void set_draw_function(drawT d) {draw = d;}
   void make_ball_move(int x, int y, int rozm);
   void reverse_y();
