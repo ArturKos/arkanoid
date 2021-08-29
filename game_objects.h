@@ -9,14 +9,14 @@ private:
 public:
   ball(int size){
     ball_size = size;
-    new_game();
+    new_game(0, 0, 0);
   }
-  void new_game();
+  void new_game(int x, int y, int rozm);
   int get_x();
   int get_y();
   int get_ry_move();
   void set_draw_function(drawT d) {draw = d;}
-  void make_ball_move(int x, int y, int rozm);
+  void make_ball_move(int x, int y, int rozm, bool *game_running);
   void reverse_y();
   void reverse_x();
 };
@@ -55,7 +55,7 @@ private:
 public:
   tiles(int board_width, int board_height, ball *gball);
   ~tiles();
-  void check_collisions();
+  void check_collisions(bool game_running);
   bool game_over();
   void new_game();
   void set_draw_function(draw_rectT d) {draw = d;}
