@@ -1,7 +1,9 @@
-#define BACKGROUND_FILE     "background.png"
-#define BALL_SIZE           15
-#define TILES_IN_COLUMN     10
-#define TILES_IN_ROW        5
-#define NUMBER_OF_TILES     TILES_IN_COLUMN*TILES_IN_ROW
-#define BOARD_WIDTH         1024
-#define BOARD_HEIGHT        768
+#define BACKGROUND_FILE "background.png"
+#define BALL_SIZE 15
+#define TILES_IN_COLUMN 10
+#define TILES_IN_ROW 5
+#define ANIMATION_TILES_SIZE 5
+#define ANIMATION_RANDOM_MOVE 10
+#define NUMBER_OF_TILES TILES_IN_COLUMN* TILES_IN_ROW
+#define BOARD_WIDTH 1024
+#define BOARD_HEIGHT 768
