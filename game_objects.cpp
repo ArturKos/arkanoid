@@ -94,13 +94,24 @@ void tiles::check_collisions(bool game_running) {
            game_tiles[i]->get_x() + size_width,
            game_tiles[i]->get_y() + size_height, game_tiles[i]->get_color());
   if (game_running)
-    for (int i = 0; i < TILES_IN_COLUMN * TILES_IN_ROW; i++) {
-      if (game_tiles[i]->get_visible())
-        if ((game_ball->get_x() + BALL_SIZE <=
-                 game_tiles[i]->get_x() + size_width &&
-             game_ball->get_x() - BALL_SIZE >= game_tiles[i]->get_x()) &&
-            (game_ball->get_y() - BALL_SIZE <=
-             game_tiles[i]->get_y() + size_height)) {
+    for (int i = 0; i < TILES_IN_COLUMN * TILES_IN_ROW; i++)
+      if (game_tiles[i]->get_visible()){
+        bool collision = false;
+          if (game_ball->get_x() - BALL_SIZE + 1 <= game_tiles[i]->get_x() + size_width &&
+              game_ball->get_x() + BALL_SIZE - 1 >= game_tiles[i]->get_x() &&
+            ((game_ball->get_y() - BALL_SIZE <= game_tiles[i]->get_y() + size_height && game_ball->get_y() - BALL_SIZE > game_tiles[i]->get_y()) || //odbicie piłki od dołu
+             (game_ball->get_y() + BALL_SIZE >= game_tiles[i]->get_y() && game_ball->get_y() + BALL_SIZE < game_tiles[i]->get_y() + size_height))){  //odbicie piłki od góry
+            game_ball->reverse_y(); //odbicie piłki
+            collision = true;
+          }else
+        if(game_ball->get_y() - BALL_SIZE + 1 <= game_tiles[i]->get_y() + size_height &&
+           game_ball->get_y() + BALL_SIZE - 1 >= game_tiles[i]->get_y() &&
+         ((game_ball->get_x() - BALL_SIZE  <= game_tiles[i]->get_x() + size_width && game_ball->get_x() - BALL_SIZE  > game_tiles[i]->get_x()) ||//odbicie piłki od prawego boku
+          (game_ball->get_x() + BALL_SIZE  >= game_tiles[i]->get_x() && game_ball->get_x() - BALL_SIZE  < game_tiles[i]->get_x() + size_width))){ //odbicie piłki od lewego boku
+          game_ball->reverse_x(); //odbicie piłki
+          collision = true;
+        }
+        if(collision){
           game_tiles[i]->set_visible(false);
           //tutaj dodanie do animacji
           for (int x = 0; x < size_width/ANIMATION_TILES_SIZE; x++)
@@ -108,9 +119,8 @@ void tiles::check_collisions(bool game_running) {
               anim_tiles.push_back({game_tiles[i]->get_x()+x*ANIMATION_TILES_SIZE,
                                     game_tiles[i]->get_y()+y*ANIMATION_TILES_SIZE,
                                     game_tiles[i]->get_color()});
-            }
-          if (game_ball->get_ry_move() < 0) game_ball->reverse_y();
-          break;
         }
+        break;
+      }
     }
 }

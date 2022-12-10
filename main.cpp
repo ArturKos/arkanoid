@@ -23,14 +23,14 @@ int main() {
   al_init_font_addon();
   al_init_image_addon();
   ALLEGRO_KEYBOARD_STATE klawiatura;
-  // al_set_new_display_flags( ALLEGRO_FULLSCREEN );
+
   ALLEGRO_DISPLAY *okno = al_create_display(BOARD_WIDTH, BOARD_HEIGHT);
   game_running = false;
   al_set_window_title(okno, "Arkanoid by Artur Kos");
-  // ALLEGRO_BITMAP *kwadrat = al_create_bitmap(rozm,rozm);
+
   ALLEGRO_BITMAP *background = NULL;
   ALLEGRO_FONT *font8 = al_create_builtin_font();
-  // al_set_target_bitmap(kwadrat);
+
   al_clear_to_color(al_map_rgb(200, 0, 0));
   al_set_target_bitmap(al_get_backbuffer(okno));
 
@@ -76,7 +76,6 @@ int main() {
     al_rest(0.01);
   }
   al_destroy_bitmap(background);
-  // al_destroy_bitmap(kwadrat);
   al_destroy_display(okno);
   return 0;
 }
