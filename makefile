@@ -13,8 +13,9 @@ LINUX_CFLAGS=-O2 -Wall
 WINDOWS_GCC=i686-w64-mingw32-g++
 WINDOWS_CFLAGS=-O2 -Wall
 ALLEGRO5_LINUX=`pkg-config --cflags --libs pkg-config --cflags --libs allegro-5 allegro_acodec-5 allegro_audio-5 allegro_color-5 allegro_font-5 allegro_image-5 allegro_main-5 allegro_memfile-5 allegro_physfs-5 allegro_primitives-5 allegro_ttf-5 ibus-table opusfile opusurl RapidJSON`
-ALLEGRO5_WINDOWS=`pkg-config --cflags --libs allegro-5 allegro_acodec-5 allegro_audio-5 allegro_color-5 allegro_font-5 allegro_image-5 allegro_main-5 allegro_memfile-5 allegro_physfs-5 allegro_primitives-5 allegro_ttf-5 ibus-table opusfile opusurl RapidJSON`
-export PKG_CONFIG_PATH=/usr/lib/pkgconfig/
+#ALLEGRO5_WINDOWS=`pkg-config --cflags --libs allegro-5 allegro_acodec-5 allegro_audio-5 allegro_color-5 allegro_font-5 allegro_image-5 allegro_main-5 allegro_memfile-5 allegro_physfs-5 allegro_primitives-5 allegro_ttf-5 ibus-table opusfile opusurl RapidJSON`
+ALLEGRO5_WINDOWS=`pkg-config --cflags --libs allegro-5 allegro_ttf-5 allegro_primitives-5 allegro_physfs-5 allegro_memfile-5 allegro_main-5 allegro_image-5 allegro_font-5 allegro_dialog-5 allegro_color-5 allegro_audio-5 allegro_acodec-5`
+export PKG_CONFIG_PATH=/usr/i686-w64-mingw32/lib/pkgconfig/
 ####################
 
 .PHONY: all run clean help linux windows

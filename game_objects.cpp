@@ -88,24 +88,23 @@ void tiles::play_animation_when_tile_and_ball_collision(){
     anim_tiles.erase(anim_tiles.begin() + i);
 }
 void tiles::check_collisions(bool game_running) {
-  for (int i = 0; i < TILES_IN_COLUMN * TILES_IN_ROW; i++)
-    if (game_tiles[i]->get_visible())
-      draw(game_tiles[i]->get_x(), game_tiles[i]->get_y(),
-           game_tiles[i]->get_x() + size_width,
-           game_tiles[i]->get_y() + size_height, game_tiles[i]->get_color());
-  if (game_running)
+
     for (int i = 0; i < TILES_IN_COLUMN * TILES_IN_ROW; i++)
       if (game_tiles[i]->get_visible()){
+        draw(game_tiles[i]->get_x(), game_tiles[i]->get_y(),
+             game_tiles[i]->get_x() + size_width,
+             game_tiles[i]->get_y() + size_height, game_tiles[i]->get_color());
+        if (!game_running) continue;
         bool collision = false;
-          if (game_ball->get_x() - BALL_SIZE + 1 <= game_tiles[i]->get_x() + size_width &&
-              game_ball->get_x() + BALL_SIZE - 1 >= game_tiles[i]->get_x() &&
-            ((game_ball->get_y() - BALL_SIZE <= game_tiles[i]->get_y() + size_height && game_ball->get_y() - BALL_SIZE > game_tiles[i]->get_y()) || //odbicie piłki od dołu
-             (game_ball->get_y() + BALL_SIZE >= game_tiles[i]->get_y() && game_ball->get_y() + BALL_SIZE < game_tiles[i]->get_y() + size_height))){  //odbicie piłki od góry
-            game_ball->reverse_y(); //odbicie piłki
-            collision = true;
-          }else
-        if(game_ball->get_y() - BALL_SIZE + 1 <= game_tiles[i]->get_y() + size_height &&
-           game_ball->get_y() + BALL_SIZE - 1 >= game_tiles[i]->get_y() &&
+        if (game_ball->get_x() + BALL_SIZE + 1 <= game_tiles[i]->get_x() + size_width &&
+            game_ball->get_x() - BALL_SIZE - 1 >= game_tiles[i]->get_x() &&
+          ((game_ball->get_y() - BALL_SIZE <= game_tiles[i]->get_y() + size_height && game_ball->get_y() - BALL_SIZE > game_tiles[i]->get_y()) || //odbicie piłki od dołu
+           (game_ball->get_y() + BALL_SIZE >= game_tiles[i]->get_y() && game_ball->get_y() + BALL_SIZE < game_tiles[i]->get_y() + size_height))){  //odbicie piłki od góry
+          game_ball->reverse_y(); //odbicie piłki
+          collision = true;
+        }else
+        if(game_ball->get_y() + BALL_SIZE + 1 <= game_tiles[i]->get_y() + size_height &&
+           game_ball->get_y() - BALL_SIZE - 1 >= game_tiles[i]->get_y() &&
          ((game_ball->get_x() - BALL_SIZE  <= game_tiles[i]->get_x() + size_width && game_ball->get_x() - BALL_SIZE  > game_tiles[i]->get_x()) ||//odbicie piłki od prawego boku
           (game_ball->get_x() + BALL_SIZE  >= game_tiles[i]->get_x() && game_ball->get_x() - BALL_SIZE  < game_tiles[i]->get_x() + size_width))){ //odbicie piłki od lewego boku
           game_ball->reverse_x(); //odbicie piłki
