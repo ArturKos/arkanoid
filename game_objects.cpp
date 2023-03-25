@@ -6,7 +6,7 @@ void ball::make_ball_move(int x, int y, int rozm, bool *game_running) {
     ry += ry_move;
     if ((rx + BALL_SIZE >= BOARD_WIDTH) || (rx - BALL_SIZE <= 0)) reverse_x();
     if ((ry + BALL_SIZE >= y && ry + BALL_SIZE < y + 5 && rx - BALL_SIZE >= x &&
-         rx + BALL_SIZE <= x + 3 * rozm && get_ry_move() > 0) ||
+         rx - BALL_SIZE <= x + (rozm * 3) && get_ry_move() > 0) ||
         (ry - BALL_SIZE <= 0))
       reverse_y();
     if (ry > BOARD_HEIGHT) {

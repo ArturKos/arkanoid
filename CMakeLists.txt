@@ -10,7 +10,11 @@ project(
   pkg_check_modules(ALLEGRO5 REQUIRED allegro-5 allegro_acodec-5 allegro_audio-5 allegro_color-5 allegro_font-5 allegro_image-5 allegro_main-5 allegro_memfile-5 allegro_physfs-5 allegro_primitives-5 allegro_ttf-5 ibus-table opusfile opusurl RapidJSON)
   target_link_libraries(arkanoid  ${ALLEGRO5_LIBRARIES})
   target_include_directories(arkanoid PUBLIC ${ALLEGRO5_INCLUDE_DIRS})
-
+  if(MSVC)
+	target_compile_options(arkanoid PRIVATE /wall)
+  else()
+  	target_compile_options(arkanoid PRIVATE -Wall -Wextra -pedantic)
+  endif()
 
 # Make sure you link your targets with this command. It can also link libraries and
 # even flags, so linking a target that does not exist will not give a configure-time error.
