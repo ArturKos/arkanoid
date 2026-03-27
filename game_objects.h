@@ -1,73 +1,108 @@
-typedef void (*drawT)(float, float, float, ALLEGRO_COLOR);
-typedef void (*draw_rectT)(float, float, float, float, ALLEGRO_COLOR);
+#ifndef GAME_OBJECTS_H
+#define GAME_OBJECTS_H
 
-struct animate_tile {
-  int x;
-  int y;
-  ALLEGRO_COLOR color;
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_font.h>
+#include <vector>
+
+#include "arkanoid.h"
+
+// --- Particle (improved explosion) ---
+struct particle {
+  float x, y;
+  float vx, vy;
+  float alpha;
+  unsigned char r, g, b;
 };
 
+// --- Ball trail point ---
+struct trail_point {
+  float x, y;
+};
+
+// --- Power-up falling from destroyed tile ---
+struct powerup {
+  float x, y;
+  int type;
+  bool active;
+};
+
+// --- Ball ---
 class ball {
  private:
-  int ball_size, rx, ry, rx_move, ry_move;
-  drawT draw;
+  int rx, ry;
+  int rx_move, ry_move;
+  int speed;
+  trail_point trail[BALL_TRAIL_LENGTH];
+  int trail_count;
 
  public:
-  ball(int size) {
-    ball_size = size;
-    new_game(0, 0, 0);
-  }
+  ball(int size);
   void new_game(int x, int y, int rozm);
   int get_x();
   int get_y();
   int get_ry_move();
-  void set_draw_function(drawT d) { draw = d; }
-  void make_ball_move(int x, int y, int rozm, bool *game_running);
+  void make_ball_move(int x, int y, int rozm, float paddle_w_mult,
+                      bool *game_running, int *lives);
   void reverse_y();
   void reverse_x();
+  void draw_ball();
+  void draw_trail();
+  void set_speed(int s);
+  int get_speed();
 };
 
+// --- Single tile ---
 class tile {
  private:
   int tile_x, tile_y, tile_width, tile_height;
-  ALLEGRO_COLOR tile_color;
+  unsigned char base_r, base_g, base_b;
   bool tile_visible;
+  int hp, max_hp;
 
  public:
-  tile(int x, int y, int width, int height, ALLEGRO_COLOR color) {
-    tile_x = x;
-    tile_y = y;
-    tile_width = width;
-    tile_height = height;
-    tile_color = color;
-    tile_visible = true;
-  }
+  tile(int x, int y, int w, int h, unsigned char r, unsigned char g,
+       unsigned char b, int hp);
   int get_x();
   int get_y();
   int get_width();
   int get_height();
-  void set_visible(bool vis) { tile_visible = vis; }
-  bool get_visible() { return tile_visible; }
-  ALLEGRO_COLOR get_color();
-  void set_color(ALLEGRO_COLOR col) { tile_color = col; }
+  int get_hp();
+  int get_max_hp();
+  bool get_visible();
+  void set_visible(bool vis);
+  void set_hp(int h);
+  void set_color(unsigned char r, unsigned char g, unsigned char b);
+  void get_color(unsigned char &r, unsigned char &g, unsigned char &b);
+  bool hit();  // returns true if tile is now destroyed
+  void draw_beveled();
 };
 
+// --- Tile grid + particles + powerups ---
 class tiles {
  private:
-  tile *game_tiles[TILES_IN_COLUMN * TILES_IN_ROW];  // 10 kolumn, 5 rzędów
-  std::vector<animate_tile> anim_tiles;
+  tile *game_tiles[TILES_IN_COLUMN * TILES_IN_ROW];
+  std::vector<particle> particles;
+  std::vector<powerup> powerups;
   ball *game_ball;
-  draw_rectT draw;
   int size_width;
   int size_height;
+
  public:
   tiles(int board_width, int board_height, ball *gball);
   ~tiles();
-  void check_collisions(bool game_running);
+  int check_collisions(bool game_running, int *shake);
   bool game_over();
-  void play_animation_when_tile_and_ball_collision();
   void new_game();
-  void set_draw_function(draw_rectT d) { draw = d; }
-  int get_size_width() { return size_width; }
-  int get_size_height() { return size_height; }
+  void draw_tiles();
+  void spawn_particles(int x, int y, int w, int h, unsigned char r,
+                       unsigned char g, unsigned char b);
+  void update_and_draw_particles();
+  void update_powerups();
+  void draw_powerups(ALLEGRO_FONT *font);
+  int collect_powerup(float paddle_x, float paddle_y, float paddle_w,
+                      float paddle_h);
 };
+
+#endif

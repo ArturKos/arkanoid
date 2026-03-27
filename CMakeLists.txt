@@ -6,8 +6,8 @@ project(
   LANGUAGES CXX)
 
   find_package(PkgConfig REQUIRED)
-  add_executable(arkanoid main.cpp)
-  pkg_check_modules(ALLEGRO5 REQUIRED allegro-5 allegro_acodec-5 allegro_audio-5 allegro_color-5 allegro_font-5 allegro_image-5 allegro_main-5 allegro_memfile-5 allegro_physfs-5 allegro_primitives-5 allegro_ttf-5 ibus-table opusfile opusurl RapidJSON)
+  add_executable(arkanoid main.cpp game_objects.cpp intro.cpp scores.cpp screen.cpp)
+  pkg_check_modules(ALLEGRO5 REQUIRED allegro-5 allegro_acodec-5 allegro_audio-5 allegro_color-5 allegro_font-5 allegro_image-5 allegro_main-5 allegro_memfile-5 allegro_physfs-5 allegro_primitives-5 allegro_ttf-5)
   target_link_libraries(arkanoid  ${ALLEGRO5_LIBRARIES})
   target_include_directories(arkanoid PUBLIC ${ALLEGRO5_INCLUDE_DIRS})
   if(MSVC)
