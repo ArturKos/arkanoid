@@ -7,13 +7,19 @@ A classic brick-breaker game built with **C++** and **Allegro 5**, featuring pow
 ![CMake](https://img.shields.io/badge/CMake-3.2+-orange)
 ![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
 
-## Demo
+## Demo Videos
 
 ### After AI Refactoring
-[![Arkanoid after AI improvements](https://img.youtube.com/vi/-k9hkdu4cm8/0.jpg)](https://youtu.be/-k9hkdu4cm8)
+
+[**Watch on YouTube**](https://youtu.be/-k9hkdu4cm8)
+
+[![Arkanoid after AI improvements](https://img.youtube.com/vi/-k9hkdu4cm8/maxresdefault.jpg)](https://youtu.be/-k9hkdu4cm8)
 
 ### Legacy Version
-[![Legacy Arkanoid](https://img.youtube.com/vi/IxjPidbq55g/0.jpg)](https://youtu.be/IxjPidbq55g)
+
+[**Watch on YouTube**](https://youtu.be/IxjPidbq55g)
+
+[![Legacy Arkanoid](https://img.youtube.com/vi/IxjPidbq55g/maxresdefault.jpg)](https://youtu.be/IxjPidbq55g)
 
 ## Screenshots
 
