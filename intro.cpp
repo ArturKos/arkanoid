@@ -410,10 +410,12 @@ bool run_intro(ALLEGRO_DISPLAY *display, ALLEGRO_FONT *font) {
       al_draw_text(font, dim, col2, cy,      0, "Move paddle");
       al_draw_text(font, key, col1, cy + 16, 0, "SPACE");
       al_draw_text(font, dim, col2, cy + 16, 0, "Launch ball");
-      al_draw_text(font, key, col1, cy + 32, 0, "F");
-      al_draw_text(font, dim, col2, cy + 32, 0, "Toggle fullscreen");
-      al_draw_text(font, key, col1, cy + 48, 0, "ESC");
-      al_draw_text(font, dim, col2, cy + 48, 0, "Quit");
+      al_draw_text(font, key, col1, cy + 32, 0, "P");
+      al_draw_text(font, dim, col2, cy + 32, 0, "Pause / resume");
+      al_draw_text(font, key, col1, cy + 48, 0, "F");
+      al_draw_text(font, dim, col2, cy + 48, 0, "Toggle fullscreen");
+      al_draw_text(font, key, col1, cy + 64, 0, "ESC");
+      al_draw_text(font, dim, col2, cy + 64, 0, "Quit");
     }
 
     // --- "Press SPACE to start" blinking -------------------
