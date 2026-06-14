@@ -177,6 +177,7 @@ int main() {
   }
 
   // --- Retro intro screen ---
+  play_sound(SND_START);
   if (!run_intro(okno, font8)) {
     al_destroy_bitmap(background);
     al_destroy_font(font8);

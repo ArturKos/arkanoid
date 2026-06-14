@@ -2,6 +2,7 @@
 #define AUDIO_H
 
 enum sound_id {
+  SND_START,
   SND_PADDLE,
   SND_WALL,
   SND_HIT,

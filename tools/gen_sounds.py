@@ -90,6 +90,11 @@ def write_wav(name, samples):
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
 
+    # Retro power-on jingle: rising arpeggio with a high flourish
+    write_wav("start.wav",
+              seq(tone(392, 0.09, 0.4), tone(523, 0.09, 0.4),
+                  tone(659, 0.09, 0.4), tone(784, 0.09, 0.4),
+                  tone(1046, 0.10, 0.45), tone(1318, 0.20, 0.45)))
     write_wav("paddle.wav", tone(440, 0.07, 0.5, release=0.5))
     write_wav("wall.wav", tone(700, 0.04, 0.4, release=0.5))
     write_wav("hit.wav", tone(300, 0.06, 0.45, release=0.5))

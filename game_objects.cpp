@@ -60,12 +60,15 @@ void ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
     rx += rx_move;
     ry += ry_move;
 
-    // Wall collisions
-    if (rx + BALL_SIZE >= BOARD_WIDTH || rx - BALL_SIZE <= 0) {
+    // Wall collisions — only reflect when actually heading into the wall,
+    // otherwise the ball can get pinned at the edge flipping direction (and
+    // retriggering the bounce sound) every frame.
+    if ((rx - BALL_SIZE <= 0 && rx_move < 0) ||
+        (rx + BALL_SIZE >= BOARD_WIDTH && rx_move > 0)) {
       reverse_x();
       play_sound(SND_WALL);
     }
-    if (ry - BALL_SIZE <= 0) {
+    if (ry - BALL_SIZE <= 0 && ry_move < 0) {
       reverse_y();
       play_sound(SND_WALL);
     }

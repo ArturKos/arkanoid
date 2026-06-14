@@ -9,9 +9,9 @@ static ALLEGRO_SAMPLE *samples[SND_COUNT] = {0};
 static bool audio_ready = false;
 
 static const char *sound_files[SND_COUNT] = {
-    "sounds/paddle.wav",    "sounds/wall.wav",      "sounds/hit.wav",
-    "sounds/destroy.wav",   "sounds/powerup.wav",   "sounds/life_lost.wav",
-    "sounds/level.wav",     "sounds/gameover.wav",
+    "sounds/start.wav",     "sounds/paddle.wav",    "sounds/wall.wav",
+    "sounds/hit.wav",       "sounds/destroy.wav",   "sounds/powerup.wav",
+    "sounds/life_lost.wav", "sounds/level.wav",     "sounds/gameover.wav",
 };
 
 void init_audio() {
