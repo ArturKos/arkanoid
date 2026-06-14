@@ -22,6 +22,7 @@ modules:
   # Allegro 5 is not part of the freedesktop runtime, so build it from source.
   - name: allegro5
     buildsystem: cmake-ninja
+    builddir: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DWANT_DOCS=OFF
