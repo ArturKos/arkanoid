@@ -6,6 +6,7 @@
 
 #include "arkanoid.h"
 #include "game_objects.h"
+#include "audio.h"
 
 // ============================================================
 //  Ball
@@ -60,8 +61,14 @@ void ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
     ry += ry_move;
 
     // Wall collisions
-    if (rx + BALL_SIZE >= BOARD_WIDTH || rx - BALL_SIZE <= 0) reverse_x();
-    if (ry - BALL_SIZE <= 0) reverse_y();
+    if (rx + BALL_SIZE >= BOARD_WIDTH || rx - BALL_SIZE <= 0) {
+      reverse_x();
+      play_sound(SND_WALL);
+    }
+    if (ry - BALL_SIZE <= 0) {
+      reverse_y();
+      play_sound(SND_WALL);
+    }
 
     // Paddle collision
     float pw = rozm * paddle_w_mult;
@@ -69,6 +76,7 @@ void ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
         rx + BALL_SIZE >= x && rx - BALL_SIZE <= x + (int)pw &&
         get_ry_move() > 0) {
       reverse_y();
+      play_sound(SND_PADDLE);
       // Angle the ball based on where it hit the paddle
       float hit_pos = ((float)(rx - x)) / pw;  // 0.0 = left, 1.0 = right
       if (hit_pos < 0.3f)
@@ -80,6 +88,7 @@ void ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
     // Ball fell off bottom
     if (ry > BOARD_HEIGHT) {
       (*lives)--;
+      play_sound(SND_LIFE_LOST);
       new_game(x, y, rozm);
       *game_running = false;
       trail_count = 0;
@@ -436,6 +445,7 @@ int tiles::check_collisions(bool game_running, int *shake) {
       if (destroyed) {
         score += SCORE_PER_DESTROY;
         *shake = SHAKE_FRAMES;
+        play_sound(SND_DESTROY);
 
         unsigned char r, g, b;
         game_tiles[i]->get_color(r, g, b);
@@ -451,6 +461,7 @@ int tiles::check_collisions(bool game_running, int *shake) {
           powerups.push_back(pu);
         }
       } else {
+        play_sound(SND_HIT);
         // Small particle burst for hit (not destroy)
         unsigned char r, g, b;
         game_tiles[i]->get_color(r, g, b);

@@ -13,6 +13,7 @@
 #include "game_objects.h"
 #include "intro.h"
 #include "scores.h"
+#include "audio.h"
 
 // --- Game state ---
 int rozm = 40;
@@ -25,6 +26,9 @@ char player_name[MAX_NAME_LENGTH + 1] = "";
 
 // Screen shake
 int shake_timer = 0;
+
+// Plays the game-over jingle once per death, re-armed on restart
+bool gameover_sound_done = false;
 
 // Power-up timers
 int wider_timer = 0;
@@ -43,6 +47,7 @@ void reset_game() {
   wider_timer = 0;
   slow_timer = 0;
   paddle_w_mult = PADDLE_WIDTH_MULT;
+  gameover_sound_done = false;
   game_ball.set_speed(BALL_SPEED);
   game_tiles.new_game();
   game_ball.new_game(x, y, rozm);
@@ -120,6 +125,7 @@ int main() {
   al_init_font_addon();
   al_init_image_addon();
   al_init_primitives_addon();
+  init_audio();
 
   ALLEGRO_KEYBOARD_STATE klawiatura;
   al_set_new_display_flags(ALLEGRO_RESIZABLE);
@@ -140,6 +146,7 @@ int main() {
             "Error: Failed to load '%s'. "
             "Make sure the file exists in the working directory.\n",
             BACKGROUND_FILE);
+    destroy_audio();
     destroy_game_buffer();
     al_destroy_display(okno);
     return -1;
@@ -149,6 +156,7 @@ int main() {
   if (!run_intro(okno, font8)) {
     al_destroy_bitmap(background);
     al_destroy_font(font8);
+    destroy_audio();
     destroy_game_buffer();
     al_destroy_display(okno);
     return 0;
@@ -158,6 +166,7 @@ int main() {
   if (!prompt_name(okno, font8, player_name)) {
     al_destroy_bitmap(background);
     al_destroy_font(font8);
+    destroy_audio();
     destroy_game_buffer();
     al_destroy_display(okno);
     return 0;
@@ -180,6 +189,10 @@ int main() {
 
     // --- Game over: show high scores ---
     if (lives <= 0) {
+      if (!gameover_sound_done) {
+        play_sound(SND_GAMEOVER);
+        gameover_sound_done = true;
+      }
       bool restart = draw_high_scores(okno, font8, player_name, score, poziom);
       if (restart) {
         reset_game();
@@ -259,6 +272,7 @@ int main() {
     game_tiles.draw_powerups(font8);
     int pu = game_tiles.collect_powerup((float)x, (float)y,
                                         rozm * paddle_w_mult, (float)rozm);
+    if (pu != 0) play_sound(SND_POWERUP);
     if (pu == POWERUP_WIDER) {
       wider_timer = POWERUP_DURATION;
       paddle_w_mult = PADDLE_WIDER_MULT;
@@ -275,6 +289,7 @@ int main() {
 
     // Level complete
     if (game_tiles.game_over()) {
+      play_sound(SND_LEVEL);
       game_running = false;
       poziom++;
       wider_timer = 0;
@@ -297,6 +312,7 @@ int main() {
 
   al_destroy_bitmap(background);
   al_destroy_font(font8);
+  destroy_audio();
   destroy_game_buffer();
   al_destroy_display(okno);
   return 0;

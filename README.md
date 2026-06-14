@@ -38,6 +38,7 @@ A classic brick-breaker game built with **C++** and **Allegro 5**, featuring pow
 - **Particle explosion system** with gravity, color variation, and fade-out when tiles are destroyed
 - **Ball trail effect** rendering a fading tail behind the ball as it moves
 - **Screen shake** triggered on tile destruction for visual impact
+- **Sound effects** for paddle/wall bounces, tile hits and destruction, power-up pickup, life loss, level clear, and game over (retro-style WAV samples in `sounds/`; the game runs silently if audio is unavailable)
 - **Persistent high scores** saved to `scores.dat` in binary format, displaying the top 10 entries with animated row fade-in
 - **Retro CRT intro screen** with falling pixel-art title bricks, rainbow shimmer, starfield background, bouncing ball, and decorative bottom bricks
 - **Name input screen** with blinking cursor and CRT scanline overlay
