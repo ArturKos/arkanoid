@@ -55,6 +55,11 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="1.1" date="2026-06-14">
+      <description>
+        <p>Adds a self-playing attract/demo mode (starts after inactivity on the intro or with --demo) that also catches falling power-ups, and a stretch-to-fill fullscreen mode.</p>
+      </description>
+    </release>
     <release version="1.0" date="2026-06-14">
       <description>
         <p>First packaged release: five power-ups, sound effects, file-based levels, and FHS-compliant installation.</p>
