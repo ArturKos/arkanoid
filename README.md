@@ -107,6 +107,7 @@ Make sure `background.png` is present in the working directory, then run:
 | Move paddle left/right | Left / Right arrow |
 | Move paddle up/down | Up / Down arrow (lower half of screen) |
 | Launch ball | Space |
+| Pause / resume | P |
 | Toggle fullscreen | F |
 | Quit | Escape |
 

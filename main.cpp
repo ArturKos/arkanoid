@@ -101,6 +101,30 @@ void draw_paddle(int px, int py, float w_mult) {
   al_draw_rectangle(x1, y1, x2, y2, al_map_rgba(120, 140, 220, 200), 1.5f);
 }
 
+// --- Pause toggle ---
+bool paused = false;
+bool p_was_down = false;
+
+void toggle_pause(ALLEGRO_KEYBOARD_STATE *kb) {
+  bool p_down = al_key_down(kb, ALLEGRO_KEY_P);
+  if (p_down && !p_was_down) paused = !paused;
+  p_was_down = p_down;
+}
+
+// Draw a dimming overlay and centered "PAUSED" banner
+void draw_pause_overlay(ALLEGRO_FONT *font) {
+  al_draw_filled_rectangle(0, 0, BOARD_WIDTH, BOARD_HEIGHT,
+                           al_map_rgba(0, 0, 0, 140));
+  const char *title = "PAUSED";
+  const char *hint = "Press P to resume";
+  float cx = BOARD_WIDTH / 2.0f;
+  float cy = BOARD_HEIGHT / 2.0f;
+  al_draw_text(font, al_map_rgb(255, 255, 100), cx, cy - 20,
+               ALLEGRO_ALIGN_CENTER, title);
+  al_draw_text(font, al_map_rgba(200, 200, 220, 200), cx, cy + 4,
+               ALLEGRO_ALIGN_CENTER, hint);
+}
+
 // --- Fullscreen toggle ---
 bool fullscreen = false;
 bool f_was_down = false;
@@ -186,6 +210,7 @@ int main() {
   while (!al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE)) {
     al_get_keyboard_state(&klawiatura);
     toggle_fullscreen(okno, &klawiatura);
+    toggle_pause(&klawiatura);
 
     // --- Game over: show high scores ---
     if (lives <= 0) {
@@ -203,6 +228,28 @@ int main() {
       } else {
         break;
       }
+      continue;
+    }
+
+    // --- Paused: draw a frozen frame with overlay, skip all updates ---
+    if (paused) {
+      begin_frame();
+      ALLEGRO_TRANSFORM tp;
+      al_identity_transform(&tp);
+      al_use_transform(&tp);
+      al_draw_scaled_bitmap(background, 0, 0,
+                            (float)al_get_bitmap_width(background),
+                            (float)al_get_bitmap_height(background),
+                            0, 0, BOARD_WIDTH, BOARD_HEIGHT, 0);
+      draw_paddle(x, y, paddle_w_mult);
+      game_tiles.draw_tiles();
+      game_tiles.draw_powerups(font8);
+      game_ball.draw_trail();
+      game_ball.draw_ball();
+      draw_hud(font8);
+      draw_pause_overlay(font8);
+      end_frame(okno);
+      al_rest(0.01);
       continue;
     }
 
