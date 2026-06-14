@@ -33,3 +33,5 @@ install(DIRECTORY build/sounds build/levels
         DESTINATION ${CMAKE_INSTALL_DATADIR}/arkanoid)
 install(FILES arkanoid.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(DIRECTORY icons/hicolor
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/icons)

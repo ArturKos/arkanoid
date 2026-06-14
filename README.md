@@ -110,7 +110,8 @@ sudo make install
 ```
 
 This installs the `arkanoid` binary, its data files under
-`/usr/share/arkanoid`, and a `arkanoid.desktop` menu entry. Use `DESTDIR` to
+`/usr/share/arkanoid`, a `arkanoid.desktop` menu entry, and the application
+icon into the `hicolor` theme (16-256px plus a scalable SVG). Use `DESTDIR` to
 stage into a packaging root (e.g. `make install DESTDIR=/tmp/pkg`).
 
 ## How to Play
@@ -201,6 +202,8 @@ arkanoid/
 ├── LICENSE                 # MIT license
 ├── README.md               # This file
 ├── arkanoid.desktop        # Desktop menu entry (installed to share/applications)
+├── arkanoid.svg            # App icon (source); rasterized copies under icons/
+├── icons/hicolor/          # Themed icon set (16-256px PNG + scalable SVG)
 ├── arkanoid.h              # Global constants (board size, speeds, power-up config)
 ├── main.cpp                # Game loop, input handling, HUD drawing, paddle rendering
 ├── game_objects.h          # Ball, tile, tiles container, particle, power-up declarations
