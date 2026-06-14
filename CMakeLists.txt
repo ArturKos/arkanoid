@@ -35,3 +35,5 @@ install(FILES arkanoid.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 install(DIRECTORY icons/hicolor
         DESTINATION ${CMAKE_INSTALL_DATADIR}/icons)
+install(FILES io.github.arturkos.Arkanoid.metainfo.xml
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
