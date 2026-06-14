@@ -15,53 +15,53 @@
 #include "scores.h"
 #include "audio.h"
 
-// --- Game state ---
-int rozm = 40;
-bool game_running;
-int x = BOARD_WIDTH / 2 - 40, y = BOARD_HEIGHT - 50;
-int poziom = 1;
-int score = 0;
-int lives = INITIAL_LIVES;
-char player_name[MAX_NAME_LENGTH + 1] = "";
-
-// Screen shake
-int shake_timer = 0;
-
-// Plays the game-over jingle once per death, re-armed on restart
-bool gameover_sound_done = false;
-
-// Power-up timers
-int wider_timer = 0;
-int slow_timer = 0;
-float paddle_w_mult = PADDLE_WIDTH_MULT;
+// All mutable gameplay state, grouped so it can be reset, passed around, and
+// later persisted as a unit instead of living in scattered globals.
+struct GameState {
+  int rozm = 40;
+  int x = BOARD_WIDTH / 2 - 40;
+  int y = BOARD_HEIGHT - 50;
+  bool game_running = false;
+  int poziom = 1;
+  int score = 0;
+  int lives = INITIAL_LIVES;
+  char player_name[MAX_NAME_LENGTH + 1] = "";
+  int shake_timer = 0;
+  // Plays the game-over jingle once per death, re-armed on restart
+  bool gameover_sound_done = false;
+  // Power-up timers
+  int wider_timer = 0;
+  int slow_timer = 0;
+  float paddle_w_mult = PADDLE_WIDTH_MULT;
+};
 
 ball game_ball(BALL_SIZE);
 tiles game_tiles(BOARD_WIDTH, BOARD_HEIGHT, &game_ball);
 
-// --- Reset game state ---
-void reset_game() {
-  score = 0;
-  lives = INITIAL_LIVES;
-  poziom = 1;
-  game_running = false;
-  wider_timer = 0;
-  slow_timer = 0;
-  paddle_w_mult = PADDLE_WIDTH_MULT;
-  gameover_sound_done = false;
+// --- Reset game state (keeps player name) ---
+void reset_game(GameState &gs) {
+  gs.score = 0;
+  gs.lives = INITIAL_LIVES;
+  gs.poziom = 1;
+  gs.game_running = false;
+  gs.wider_timer = 0;
+  gs.slow_timer = 0;
+  gs.paddle_w_mult = PADDLE_WIDTH_MULT;
+  gs.gameover_sound_done = false;
   game_ball.set_speed(BALL_SPEED);
   game_tiles.new_game();
-  game_ball.new_game(x, y, rozm);
+  game_ball.new_game(gs.x, gs.y, gs.rozm);
 }
 
 // --- Draw HUD ---
-void draw_hud(ALLEGRO_FONT *font) {
+void draw_hud(ALLEGRO_FONT *font, const GameState &gs) {
   al_draw_textf(font, al_map_rgb(255, 255, 100), 10, 10, 0,
-                "Score: %d", score);
+                "Score: %d", gs.score);
   al_draw_textf(font, al_map_rgb(255, 255, 100), BOARD_WIDTH / 2 - 40, 10, 0,
-                "Level %d", poziom);
+                "Level %d", gs.poziom);
   al_draw_text(font, al_map_rgba(180, 180, 220, 180), BOARD_WIDTH / 2 + 30,
-               10, 0, player_name);
-  for (int i = 0; i < lives; i++) {
+               10, 0, gs.player_name);
+  for (int i = 0; i < gs.lives; i++) {
     float cx = BOARD_WIDTH - 30.0f - i * 25.0f;
     float cy = 16.0f;
     al_draw_filled_circle(cx, cy, 8, al_map_rgba(220, 40, 0, 200));
@@ -69,15 +69,15 @@ void draw_hud(ALLEGRO_FONT *font) {
   }
 
   float ind_y = 30;
-  if (wider_timer > 0) {
-    float frac = (float)wider_timer / POWERUP_DURATION;
+  if (gs.wider_timer > 0) {
+    float frac = (float)gs.wider_timer / POWERUP_DURATION;
     al_draw_filled_rectangle(10, ind_y, 10 + frac * 80, ind_y + 8,
                              al_map_rgba(40, 200, 40, 180));
     al_draw_text(font, al_map_rgb(40, 220, 40), 95, ind_y - 2, 0, "WIDE");
     ind_y += 14;
   }
-  if (slow_timer > 0) {
-    float frac = (float)slow_timer / POWERUP_DURATION;
+  if (gs.slow_timer > 0) {
+    float frac = (float)gs.slow_timer / POWERUP_DURATION;
     al_draw_filled_rectangle(10, ind_y, 10 + frac * 80, ind_y + 8,
                              al_map_rgba(40, 100, 240, 180));
     al_draw_text(font, al_map_rgb(40, 100, 255), 95, ind_y - 2, 0, "SLOW");
@@ -85,7 +85,7 @@ void draw_hud(ALLEGRO_FONT *font) {
 }
 
 // --- Draw paddle ---
-void draw_paddle(int px, int py, float w_mult) {
+void draw_paddle(int px, int py, float w_mult, int rozm) {
   float pw = rozm * w_mult;
   float ph = (float)rozm;
   float x1 = (float)px;
@@ -154,7 +154,6 @@ int main() {
   ALLEGRO_KEYBOARD_STATE klawiatura;
   al_set_new_display_flags(ALLEGRO_RESIZABLE);
   ALLEGRO_DISPLAY *okno = al_create_display(BOARD_WIDTH, BOARD_HEIGHT);
-  game_running = false;
   al_set_window_title(okno, "Arkanoid by Artur Kos");
 
   create_game_buffer();
@@ -176,6 +175,8 @@ int main() {
     return -1;
   }
 
+  GameState gs;
+
   // --- Retro intro screen ---
   play_sound(SND_START);
   if (!run_intro(okno, font8)) {
@@ -188,7 +189,7 @@ int main() {
   }
 
   // --- Name prompt ---
-  if (!prompt_name(okno, font8, player_name)) {
+  if (!prompt_name(okno, font8, gs.player_name)) {
     al_destroy_bitmap(background);
     al_destroy_font(font8);
     destroy_audio();
@@ -205,7 +206,7 @@ int main() {
            al_key_down(&klawiatura, ALLEGRO_KEY_SPACE));
 
   // Reset ball to sit on the paddle
-  game_ball.new_game(x, y, rozm);
+  game_ball.new_game(gs.x, gs.y, gs.rozm);
   double czas = al_get_time();
 
   while (!al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE)) {
@@ -214,14 +215,15 @@ int main() {
     toggle_pause(&klawiatura);
 
     // --- Game over: show high scores ---
-    if (lives <= 0) {
-      if (!gameover_sound_done) {
+    if (gs.lives <= 0) {
+      if (!gs.gameover_sound_done) {
         play_sound(SND_GAMEOVER);
-        gameover_sound_done = true;
+        gs.gameover_sound_done = true;
       }
-      bool restart = draw_high_scores(okno, font8, player_name, score, poziom);
+      bool restart =
+          draw_high_scores(okno, font8, gs.player_name, gs.score, gs.poziom);
       if (restart) {
-        reset_game();
+        reset_game(gs);
         do {
           al_get_keyboard_state(&klawiatura);
           al_rest(0.01);
@@ -242,12 +244,12 @@ int main() {
                             (float)al_get_bitmap_width(background),
                             (float)al_get_bitmap_height(background),
                             0, 0, BOARD_WIDTH, BOARD_HEIGHT, 0);
-      draw_paddle(x, y, paddle_w_mult);
+      draw_paddle(gs.x, gs.y, gs.paddle_w_mult, gs.rozm);
       game_tiles.draw_tiles();
       game_tiles.draw_powerups(font8);
       game_ball.draw_trail();
       game_ball.draw_ball();
-      draw_hud(font8);
+      draw_hud(font8, gs);
       draw_pause_overlay(font8);
       end_frame(okno);
       al_rest(0.01);
@@ -256,31 +258,31 @@ int main() {
 
     // --- Input ---
     if (al_get_time() > czas + 0.001) {
-      float pw = rozm * paddle_w_mult;
+      float pw = gs.rozm * gs.paddle_w_mult;
       if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) &&
-          x < BOARD_WIDTH - (int)pw)
-        x += PADDLE_SPEED;
-      if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && x > 0)
-        x -= PADDLE_SPEED;
+          gs.x < BOARD_WIDTH - (int)pw)
+        gs.x += PADDLE_SPEED;
+      if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && gs.x > 0)
+        gs.x -= PADDLE_SPEED;
       if (al_key_down(&klawiatura, ALLEGRO_KEY_DOWN) &&
-          y < BOARD_HEIGHT - rozm - 10)
-        y += PADDLE_SPEED;
-      if (al_key_down(&klawiatura, ALLEGRO_KEY_UP) && y > BOARD_HEIGHT / 2)
-        y -= PADDLE_SPEED;
-      if (al_key_down(&klawiatura, ALLEGRO_KEY_SPACE) && !game_running)
-        game_running = true;
+          gs.y < BOARD_HEIGHT - gs.rozm - 10)
+        gs.y += PADDLE_SPEED;
+      if (al_key_down(&klawiatura, ALLEGRO_KEY_UP) && gs.y > BOARD_HEIGHT / 2)
+        gs.y -= PADDLE_SPEED;
+      if (al_key_down(&klawiatura, ALLEGRO_KEY_SPACE) && !gs.game_running)
+        gs.game_running = true;
       czas = al_get_time();
     }
 
     // --- Power-up timers ---
-    if (wider_timer > 0) {
-      wider_timer--;
-      paddle_w_mult = PADDLE_WIDER_MULT;
-      if (wider_timer == 0) paddle_w_mult = PADDLE_WIDTH_MULT;
+    if (gs.wider_timer > 0) {
+      gs.wider_timer--;
+      gs.paddle_w_mult = PADDLE_WIDER_MULT;
+      if (gs.wider_timer == 0) gs.paddle_w_mult = PADDLE_WIDTH_MULT;
     }
-    if (slow_timer > 0) {
-      slow_timer--;
-      if (slow_timer == 0) game_ball.set_speed(BALL_SPEED);
+    if (gs.slow_timer > 0) {
+      gs.slow_timer--;
+      if (gs.slow_timer == 0) game_ball.set_speed(BALL_SPEED);
     }
 
     // --- Draw to buffer ---
@@ -289,12 +291,12 @@ int main() {
     // Screen shake offset
     ALLEGRO_TRANSFORM t;
     al_identity_transform(&t);
-    if (shake_timer > 0) {
-      float intensity = (float)shake_timer / SHAKE_FRAMES * SHAKE_INTENSITY;
+    if (gs.shake_timer > 0) {
+      float intensity = (float)gs.shake_timer / SHAKE_FRAMES * SHAKE_INTENSITY;
       float shx = (float)(rand() % (int)(intensity * 2 + 1)) - intensity;
       float shy = (float)(rand() % (int)(intensity * 2 + 1)) - intensity;
       al_translate_transform(&t, shx, shy);
-      shake_timer--;
+      gs.shake_timer--;
     }
     al_use_transform(&t);
 
@@ -305,12 +307,12 @@ int main() {
                           0, 0, BOARD_WIDTH, BOARD_HEIGHT, 0);
 
     // Paddle
-    draw_paddle(x, y, paddle_w_mult);
+    draw_paddle(gs.x, gs.y, gs.paddle_w_mult, gs.rozm);
 
     // Tiles + collisions
     game_tiles.draw_tiles();
-    int gained = game_tiles.check_collisions(game_running, &shake_timer);
-    score += gained;
+    int gained = game_tiles.check_collisions(gs.game_running, &gs.shake_timer);
+    gs.score += gained;
 
     // Particles
     game_tiles.update_and_draw_particles();
@@ -318,40 +320,41 @@ int main() {
     // Power-ups
     game_tiles.update_powerups();
     game_tiles.draw_powerups(font8);
-    int pu = game_tiles.collect_powerup((float)x, (float)y,
-                                        rozm * paddle_w_mult, (float)rozm);
+    int pu = game_tiles.collect_powerup((float)gs.x, (float)gs.y,
+                                        gs.rozm * gs.paddle_w_mult,
+                                        (float)gs.rozm);
     if (pu != 0) play_sound(SND_POWERUP);
     if (pu == POWERUP_WIDER) {
-      wider_timer = POWERUP_DURATION;
-      paddle_w_mult = PADDLE_WIDER_MULT;
+      gs.wider_timer = POWERUP_DURATION;
+      gs.paddle_w_mult = PADDLE_WIDER_MULT;
     } else if (pu == POWERUP_SLOW) {
-      slow_timer = POWERUP_DURATION;
+      gs.slow_timer = POWERUP_DURATION;
       game_ball.set_speed(BALL_SPEED / 2);
     } else if (pu == POWERUP_LIFE) {
-      lives++;
+      gs.lives++;
     }
 
     // Ball
-    game_ball.make_ball_move(x, y, rozm, paddle_w_mult,
-                            &game_running, &lives);
+    game_ball.make_ball_move(gs.x, gs.y, gs.rozm, gs.paddle_w_mult,
+                             &gs.game_running, &gs.lives);
 
     // Level complete
     if (game_tiles.game_over()) {
       play_sound(SND_LEVEL);
-      game_running = false;
-      poziom++;
-      wider_timer = 0;
-      slow_timer = 0;
-      paddle_w_mult = PADDLE_WIDTH_MULT;
+      gs.game_running = false;
+      gs.poziom++;
+      gs.wider_timer = 0;
+      gs.slow_timer = 0;
+      gs.paddle_w_mult = PADDLE_WIDTH_MULT;
       game_ball.set_speed(BALL_SPEED);
       game_tiles.new_game();
-      game_ball.new_game(x, y, rozm);
+      game_ball.new_game(gs.x, gs.y, gs.rozm);
     }
 
     // HUD (no shake)
     al_identity_transform(&t);
     al_use_transform(&t);
-    draw_hud(font8);
+    draw_hud(font8, gs);
 
     // --- Stretch buffer to display ---
     end_frame(okno);
