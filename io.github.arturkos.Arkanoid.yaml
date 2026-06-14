@@ -1,0 +1,60 @@
+id: io.github.arturkos.Arkanoid
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: arkanoid
+
+finish-args:
+  - --socket=x11
+  - --share=ipc
+  - --socket=pulseaudio
+  - --device=dri
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /lib/cmake
+  - /share/man
+  - '*.a'
+  - '*.la'
+
+modules:
+  # Allegro 5 is not part of the freedesktop runtime, so build it from source.
+  - name: allegro5
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DWANT_DOCS=OFF
+      - -DWANT_EXAMPLES=OFF
+      - -DWANT_DEMO=OFF
+      - -DWANT_TESTS=OFF
+    sources:
+      - type: archive
+        url: https://github.com/liballeg/allegro5/releases/download/5.2.10.0/allegro-5.2.10.0.tar.gz
+        sha256: 8780b7965ad63646c7c5cd3381c64627e0c1edc3594e0947a7f3696e1176367e
+
+  - name: arkanoid
+    buildsystem: simple
+    build-commands:
+      # Use a fresh build dir so the committed build/ (with its host CMakeCache)
+      # is not reused.
+      - cmake -G Ninja -B _flatpak_build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/app
+      - cmake --build _flatpak_build
+      - cmake --install _flatpak_build
+      # Flathub requires desktop/icon/metainfo to be named after the app ID.
+      - install -Dm644 io.github.arturkos.Arkanoid.metainfo.xml /app/share/metainfo/io.github.arturkos.Arkanoid.metainfo.xml
+      - mv /app/share/applications/arkanoid.desktop /app/share/applications/io.github.arturkos.Arkanoid.desktop
+      - sed -i 's/^Icon=arkanoid$/Icon=io.github.arturkos.Arkanoid/' /app/share/applications/io.github.arturkos.Arkanoid.desktop
+      - |
+        for d in /app/share/icons/hicolor/*/apps; do
+          [ -f "$d/arkanoid.png" ] && mv "$d/arkanoid.png" "$d/io.github.arturkos.Arkanoid.png"
+          [ -f "$d/arkanoid.svg" ] && mv "$d/arkanoid.svg" "$d/io.github.arturkos.Arkanoid.svg"
+        done
+    sources:
+      # For local builds (`flatpak-builder`). For a Flathub submission, replace
+      # this with a `type: git` source pinned to a tag/commit, e.g.:
+      #   - type: git
+      #     url: https://github.com/ArturKos/arkanoid.git
+      #     tag: v1.0
+      - type: dir
+        path: .

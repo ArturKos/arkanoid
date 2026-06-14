@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.arturkos.Arkanoid</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+
+  <name>Arkanoid</name>
+  <summary>Classic brick-breaker arcade game</summary>
+
+  <developer id="io.github.arturkos">
+    <name>Artur Kos</name>
+  </developer>
+
+  <description>
+    <p>
+      A polished take on the classic Arkanoid brick-breaker. Bounce the ball off
+      your paddle to smash a grid of destructible tiles, catch falling power-ups,
+      and climb the high-score table.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>10x5 tile grid with a multi-hit HP system and beveled rendering</li>
+      <li>Five power-ups: wider paddle, slow ball, extra life, multiball, and fireball</li>
+      <li>Particle explosions, a ball motion trail, and screen shake</li>
+      <li>Retro sound effects and an animated CRT-styled intro screen</li>
+      <li>Hand-designed levels loaded from files, with randomized fallback grids</li>
+      <li>Persistent top-10 high scores</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.arturkos.Arkanoid.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/ArturKos/arkanoid/main/screenshots/gameplay.png</image>
+      <caption>Gameplay with the destructible tile grid</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/ArturKos/arkanoid/main/screenshots/intro.png</image>
+      <caption>Retro CRT-styled intro screen</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/ArturKos/arkanoid/main/screenshots/particles.png</image>
+      <caption>Particle explosion effects</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/ArturKos/arkanoid/main/screenshots/highscores.png</image>
+      <caption>High score table</caption>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://github.com/ArturKos/arkanoid</url>
+  <url type="bugtracker">https://github.com/ArturKos/arkanoid/issues</url>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="1.0" date="2026-06-14">
+      <description>
+        <p>First packaged release: five power-ups, sound effects, file-based levels, and FHS-compliant installation.</p>
+      </description>
+    </release>
+  </releases>
+</component>

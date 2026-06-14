@@ -114,6 +114,23 @@ This installs the `arkanoid` binary, its data files under
 icon into the `hicolor` theme (16-256px plus a scalable SVG). Use `DESTDIR` to
 stage into a packaging root (e.g. `make install DESTDIR=/tmp/pkg`).
 
+### Flatpak
+
+A Flatpak manifest (`io.github.arturkos.Arkanoid.yaml`) and AppStream metadata
+(`io.github.arturkos.Arkanoid.metainfo.xml`) are included. The manifest builds
+Allegro 5 from source (it is not part of the freedesktop runtime) and then the
+game. To build and install locally:
+
+```bash
+flatpak install flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+flatpak-builder --user --install --force-clean build-flatpak io.github.arturkos.Arkanoid.yaml
+flatpak run io.github.arturkos.Arkanoid
+```
+
+The manifest uses a local `type: dir` source for development; for a Flathub
+submission switch it to a `type: git` source pinned to a release tag (see the
+comment in the manifest).
+
 ## How to Play
 
 1. **Intro screen** -- Watch the animated title or press SPACE to start
