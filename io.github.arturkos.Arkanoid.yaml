@@ -55,5 +55,5 @@ modules:
     sources:
       - type: git
         url: https://github.com/ArturKos/arkanoid.git
-        tag: v1.0
-        commit: 2cd38321bd9f1087da0e66babe61af5752292cf0
+        tag: v1.1
+        commit: 2772d3de710a85f66132912b0d7ff7153803f70c
