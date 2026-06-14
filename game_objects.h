@@ -109,6 +109,9 @@ class tiles {
   void draw_powerups(ALLEGRO_FONT *font);
   int collect_powerup(float paddle_x, float paddle_y, float paddle_w,
                       float paddle_h);
+  // For demo mode: the lowest (closest-to-paddle) active power-up. Returns
+  // false if none are falling; otherwise fills its centre x and top y.
+  bool lowest_powerup(float &out_cx, float &out_y);
 };
 
 #endif

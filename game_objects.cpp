@@ -483,6 +483,21 @@ int tiles::collect_powerup(float paddle_x, float paddle_y, float paddle_w,
   return 0;
 }
 
+bool tiles::lowest_powerup(float &out_cx, float &out_y) {
+  bool found = false;
+  float best_y = -1.0f;
+  for (size_t i = 0; i < powerups.size(); i++) {
+    if (!powerups[i].active) continue;
+    if (powerups[i].y > best_y) {
+      best_y = powerups[i].y;
+      out_cx = powerups[i].x + POWERUP_WIDTH / 2.0f;
+      out_y = powerups[i].y;
+      found = true;
+    }
+  }
+  return found;
+}
+
 // --- Collision detection ---
 
 int tiles::check_collisions(ball *b, bool game_running, int *shake,

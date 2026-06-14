@@ -48,6 +48,9 @@
 #define SCORE_PER_HIT 10
 #define SCORE_PER_DESTROY 50
 
+// Seconds of inactivity on the intro screen before the attract/demo kicks in
+#define INTRO_ATTRACT_SECONDS 15.0
+
 // Screen shake
 #define SHAKE_FRAMES 10
 #define SHAKE_INTENSITY 5

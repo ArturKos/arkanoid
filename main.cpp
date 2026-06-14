@@ -156,11 +156,24 @@ void toggle_fullscreen(ALLEGRO_DISPLAY *display, ALLEGRO_KEYBOARD_STATE *kb) {
   f_was_down = f_down;
 }
 
+// True if any keyboard key is currently held (used to leave attract mode).
+static bool any_key_down(ALLEGRO_KEYBOARD_STATE *kb) {
+  for (int k = 1; k < ALLEGRO_KEY_MAX; k++)
+    if (al_key_down(kb, k)) return true;
+  return false;
+}
+
 // ============================================================
 //  Main
 // ============================================================
 
-int main() {
+int main(int argc, char **argv) {
+  // --demo: hands-free attract mode (auto-launch, paddle tracks the ball,
+  // auto-restart on game over) used for recording gameplay footage.
+  bool demo_mode = false;
+  for (int i = 1; i < argc; i++)
+    if (strcmp(argv[i], "--demo") == 0) demo_mode = true;
+
   al_init();
   srand((unsigned int)time(NULL));
   al_install_keyboard();
@@ -193,48 +206,72 @@ int main() {
     return -1;
   }
 
-  GameState gs;
-
-  // --- Retro intro screen ---
   play_sound(SND_START);
-  if (!run_intro(okno, font8)) {
-    al_destroy_bitmap(background);
-    al_destroy_font(font8);
-    destroy_audio();
-    destroy_game_buffer();
-    al_destroy_display(okno);
-    return 0;
-  }
 
-  // --- Name prompt ---
-  if (!prompt_name(okno, font8, gs.player_name)) {
-    al_destroy_bitmap(background);
-    al_destroy_font(font8);
-    destroy_audio();
-    destroy_game_buffer();
-    al_destroy_display(okno);
-    return 0;
-  }
+  // The whole program is one outer loop: intro screen -> a single playthrough
+  // -> back to intro. The attract/demo path (inactivity on the intro, or the
+  // --demo flag) drives the paddle itself.
+  bool program_quit = false;
+  while (!program_quit) {
+    GameState gs;
+    bool attract = false;
 
-  // Wait for key release
-  do {
+    // --- Retro intro screen ---
+    if (demo_mode) {
+      strncpy(gs.player_name, "DEMO", MAX_NAME_LENGTH);
+      attract = true;
+    } else {
+      intro_result ir = run_intro(okno, font8);
+      if (ir == INTRO_QUIT) {
+        program_quit = true;
+        break;
+      } else if (ir == INTRO_ATTRACT) {
+        attract = true;
+        strncpy(gs.player_name, "DEMO", MAX_NAME_LENGTH);
+      } else {
+        // --- Name prompt ---
+        if (!prompt_name(okno, font8, gs.player_name))
+          continue;  // cancelled -> back to the intro
+
+        // Wait for key release
+        do {
+          al_get_keyboard_state(&klawiatura);
+          al_rest(0.01);
+        } while (al_key_down(&klawiatura, ALLEGRO_KEY_ENTER) ||
+                 al_key_down(&klawiatura, ALLEGRO_KEY_SPACE));
+      }
+    }
+
+    // The paddle plays itself in either attract or --demo mode. Attract started
+    // from the intro returns there on any key; --demo only exits on ESC.
+    bool ai_paddle = demo_mode || attract;
+    bool attract_to_intro = attract && !demo_mode;
+
+    reset_game(gs);
+    paused = false;
+    double czas = al_get_time();
+
+  while (true) {
     al_get_keyboard_state(&klawiatura);
-    al_rest(0.01);
-  } while (al_key_down(&klawiatura, ALLEGRO_KEY_ENTER) ||
-           al_key_down(&klawiatura, ALLEGRO_KEY_SPACE));
 
-  // Load the first level layout and reset the ball onto the paddle
-  game_tiles.load_level(gs.poziom);
-  reset_balls(gs);
-  double czas = al_get_time();
+    // --- Exit conditions ---
+    if (attract_to_intro) {
+      if (any_key_down(&klawiatura)) break;  // back to the intro
+    } else if (al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE)) {
+      program_quit = true;
+      break;
+    }
 
-  while (!al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE)) {
-    al_get_keyboard_state(&klawiatura);
     toggle_fullscreen(okno, &klawiatura);
-    toggle_pause(&klawiatura);
+    if (!ai_paddle) toggle_pause(&klawiatura);
 
     // --- Game over: show high scores ---
     if (gs.lives <= 0) {
+      // Demo mode never stops to ask anything; just start a fresh game
+      if (ai_paddle) {
+        reset_game(gs);
+        continue;
+      }
       if (!gs.gameover_sound_done) {
         play_sound(SND_GAMEOVER);
         gs.gameover_sound_done = true;
@@ -248,6 +285,7 @@ int main() {
           al_rest(0.01);
         } while (al_key_down(&klawiatura, ALLEGRO_KEY_SPACE));
       } else {
+        program_quit = true;
         break;
       }
       continue;
@@ -280,18 +318,42 @@ int main() {
     // --- Input ---
     if (al_get_time() > czas + 0.001) {
       float pw = gs.rozm * gs.paddle_w_mult;
-      if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) &&
-          gs.x < BOARD_WIDTH - (int)pw)
-        gs.x += PADDLE_SPEED;
-      if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && gs.x > 0)
-        gs.x -= PADDLE_SPEED;
-      if (al_key_down(&klawiatura, ALLEGRO_KEY_DOWN) &&
-          gs.y < BOARD_HEIGHT - gs.rozm - 10)
-        gs.y += PADDLE_SPEED;
-      if (al_key_down(&klawiatura, ALLEGRO_KEY_UP) && gs.y > BOARD_HEIGHT / 2)
-        gs.y -= PADDLE_SPEED;
-      if (al_key_down(&klawiatura, ALLEGRO_KEY_SPACE) && !gs.game_running)
+      if (ai_paddle) {
+        // Auto-launch, then steer the paddle. Normally chase the lowest ball
+        // (the one most likely to fall); but if a power-up is dropping and the
+        // ball is not an immediate threat, go grab the power-up instead.
         gs.game_running = true;
+        ball *target = nullptr;
+        for (auto &b : balls)
+          if (!target || b.get_y() > target->get_y()) target = &b;
+        float aim = target ? (float)target->get_x() : -1.0f;
+        float pcx, py;
+        bool have_pu = game_tiles.lowest_powerup(pcx, py);
+        (void)py;
+        bool ball_safe = !target || target->get_y() < BOARD_HEIGHT / 2 ||
+                         target->get_ry_move() < 0;
+        if (have_pu && ball_safe) aim = pcx;
+        if (aim >= 0.0f) {
+          int desired = (int)(aim - pw / 2);
+          if (gs.x < desired && gs.x < BOARD_WIDTH - (int)pw)
+            gs.x += PADDLE_SPEED;
+          else if (gs.x > desired && gs.x > 0)
+            gs.x -= PADDLE_SPEED;
+        }
+      } else {
+        if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) &&
+            gs.x < BOARD_WIDTH - (int)pw)
+          gs.x += PADDLE_SPEED;
+        if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && gs.x > 0)
+          gs.x -= PADDLE_SPEED;
+        if (al_key_down(&klawiatura, ALLEGRO_KEY_DOWN) &&
+            gs.y < BOARD_HEIGHT - gs.rozm - 10)
+          gs.y += PADDLE_SPEED;
+        if (al_key_down(&klawiatura, ALLEGRO_KEY_UP) && gs.y > BOARD_HEIGHT / 2)
+          gs.y -= PADDLE_SPEED;
+        if (al_key_down(&klawiatura, ALLEGRO_KEY_SPACE) && !gs.game_running)
+          gs.game_running = true;
+      }
       czas = al_get_time();
     }
 
@@ -406,11 +468,15 @@ int main() {
     al_identity_transform(&t);
     al_use_transform(&t);
     draw_hud(font8, gs);
+    if (ai_paddle)
+      al_draw_text(font8, al_map_rgba(255, 255, 0, 200), BOARD_WIDTH / 2.0f,
+                   BOARD_HEIGHT - 20.0f, ALLEGRO_ALIGN_CENTER, "DEMO");
 
     // --- Stretch buffer to display ---
     end_frame(okno);
     al_rest(0.01);
-  }
+  }  // inner gameplay loop
+  }  // outer program loop -> back to the intro unless program_quit
 
   al_destroy_bitmap(background);
   al_destroy_font(font8);

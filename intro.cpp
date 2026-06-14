@@ -125,7 +125,7 @@ struct star {
 //  run_intro
 // ============================================================
 
-bool run_intro(ALLEGRO_DISPLAY *display, ALLEGRO_FONT *font) {
+intro_result run_intro(ALLEGRO_DISPLAY *display, ALLEGRO_FONT *font) {
   (void)display;
   ALLEGRO_KEYBOARD_STATE kb;
 
@@ -203,12 +203,13 @@ bool run_intro(ALLEGRO_DISPLAY *display, ALLEGRO_FONT *font) {
   }
 
   double t0 = al_get_time();
+  double last_active = t0;
   bool fs = false;
   bool f_prev = false;
 
   while (true) {
     al_get_keyboard_state(&kb);
-    if (al_key_down(&kb, ALLEGRO_KEY_ESCAPE)) return false;
+    if (al_key_down(&kb, ALLEGRO_KEY_ESCAPE)) return INTRO_QUIT;
 
     // Fullscreen toggle
     bool f_now = al_key_down(&kb, ALLEGRO_KEY_F);
@@ -220,9 +221,18 @@ bool run_intro(ALLEGRO_DISPLAY *display, ALLEGRO_FONT *font) {
 
     double elapsed = al_get_time() - t0;
 
+    // Any key press counts as activity and defers the attract demo.
+    for (int k = 1; k < ALLEGRO_KEY_MAX; k++) {
+      if (al_key_down(&kb, k)) { last_active = al_get_time(); break; }
+    }
+
     // SPACE to start (after controls are shown)
     if (elapsed > 2.8 && al_key_down(&kb, ALLEGRO_KEY_SPACE))
-      return true;
+      return INTRO_PLAY;
+
+    // After a stretch of inactivity, launch the attract/demo mode.
+    if (al_get_time() - last_active > INTRO_ATTRACT_SECONDS)
+      return INTRO_ATTRACT;
 
     // ===== Update ==========================================
 
