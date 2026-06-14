@@ -49,7 +49,7 @@ void reset_game(GameState &gs) {
   gs.paddle_w_mult = PADDLE_WIDTH_MULT;
   gs.gameover_sound_done = false;
   game_ball.set_speed(BALL_SPEED);
-  game_tiles.new_game();
+  game_tiles.load_level(gs.poziom);
   game_ball.new_game(gs.x, gs.y, gs.rozm);
 }
 
@@ -205,7 +205,8 @@ int main() {
   } while (al_key_down(&klawiatura, ALLEGRO_KEY_ENTER) ||
            al_key_down(&klawiatura, ALLEGRO_KEY_SPACE));
 
-  // Reset ball to sit on the paddle
+  // Load the first level layout and reset the ball onto the paddle
+  game_tiles.load_level(gs.poziom);
   game_ball.new_game(gs.x, gs.y, gs.rozm);
   double czas = al_get_time();
 
@@ -347,7 +348,7 @@ int main() {
       gs.slow_timer = 0;
       gs.paddle_w_mult = PADDLE_WIDTH_MULT;
       game_ball.set_speed(BALL_SPEED);
-      game_tiles.new_game();
+      game_tiles.load_level(gs.poziom);
       game_ball.new_game(gs.x, gs.y, gs.rozm);
     }
 

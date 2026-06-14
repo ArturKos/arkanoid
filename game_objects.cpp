@@ -3,6 +3,7 @@
 #include <allegro5/allegro_font.h>
 #include <cstdlib>
 #include <cmath>
+#include <cstdio>
 
 #include "arkanoid.h"
 #include "game_objects.h"
@@ -286,6 +287,53 @@ void tiles::new_game() {
   }
   particles.clear();
   powerups.clear();
+}
+
+bool tiles::load_level(int level) {
+  char path[64];
+  snprintf(path, sizeof(path), "levels/%02d.txt", level);
+  FILE *f = fopen(path, "r");
+  if (!f) {
+    new_game();  // no designed layout for this level — use a random grid
+    return false;
+  }
+
+  // Parse into a row-major grid of characters, padding missing cells as empty.
+  char grid[TILES_IN_ROW][TILES_IN_COLUMN];
+  for (int r = 0; r < TILES_IN_ROW; r++)
+    for (int c = 0; c < TILES_IN_COLUMN; c++) grid[r][c] = '.';
+
+  char line[256];
+  int row = 0;
+  while (row < TILES_IN_ROW && fgets(line, sizeof(line), f)) {
+    for (int col = 0; col < TILES_IN_COLUMN && line[col] && line[col] != '\n';
+         col++)
+      grid[row][col] = line[col];
+    row++;
+  }
+  fclose(f);
+
+  for (int i = 0; i < TILES_IN_COLUMN; i++)    // column -> x
+    for (int j = 0; j < TILES_IN_ROW; j++) {   // row -> y
+      tile *t = game_tiles[i * TILES_IN_ROW + j];
+      char ch = grid[j][i];
+      if (ch >= '1' && ch <= '9') {
+        int hp = ch - '0';
+        if (hp > MAX_TILE_HP) hp = MAX_TILE_HP;
+        unsigned char r = rand() % 200 + 55;
+        unsigned char g = rand() % 200 + 55;
+        unsigned char b = rand() % 200 + 55;
+        t->set_color(r, g, b);
+        t->set_hp(hp);
+        t->set_visible(true);
+      } else {
+        t->set_visible(false);
+      }
+    }
+
+  particles.clear();
+  powerups.clear();
+  return true;
 }
 
 void tiles::draw_tiles() {

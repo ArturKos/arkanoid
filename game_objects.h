@@ -95,6 +95,8 @@ class tiles {
   int check_collisions(bool game_running, int *shake);
   bool game_over();
   void new_game();
+  // Load layout from levels/NN.txt; falls back to a random grid if absent.
+  bool load_level(int level);
   void draw_tiles();
   void spawn_particles(int x, int y, int w, int h, unsigned char r,
                        unsigned char g, unsigned char b);

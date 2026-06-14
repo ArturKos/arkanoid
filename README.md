@@ -42,7 +42,7 @@ A classic brick-breaker game built with **C++** and **Allegro 5**, featuring pow
 - **Persistent high scores** saved to `scores.dat` in binary format, displaying the top 10 entries with animated row fade-in
 - **Retro CRT intro screen** with falling pixel-art title bricks, rainbow shimmer, starfield background, bouncing ball, and decorative bottom bricks
 - **Name input screen** with blinking cursor and CRT scanline overlay
-- **Level progression**: clearing all tiles advances to the next level with a freshly randomized grid
+- **Level progression**: clearing all tiles advances to the next level; the first levels use hand-designed layouts loaded from `levels/NN.txt`, and once those run out the grid falls back to a randomized layout
 - **Lives system** with 3 initial lives displayed as red circles in the HUD
 - **Paddle angle control**: ball angle changes based on where it strikes the paddle (left third, center, right third)
 - **Resizable window** with aspect-ratio-preserving scaling and fullscreen toggle (F key)
@@ -120,6 +120,28 @@ Make sure `background.png` is present in the working directory, then run:
 | Extra life | + (red) | Adds one life immediately | Instant |
 
 Power-ups have a 25% drop chance when a tile is destroyed. Active power-up timers are displayed as progress bars in the top-left HUD.
+
+## Custom levels
+
+Level layouts live in `levels/NN.txt` (relative to the working directory, e.g.
+`build/levels/01.txt`). Each file is a **5-row by 10-column** grid of characters:
+
+- `1`, `2`, `3` — a tile with that many hit points (capped at `MAX_TILE_HP`)
+- `.` (or any other character) — an empty cell
+
+Levels are loaded in order by number (`01.txt`, `02.txt`, …). The level whose
+number matches the current stage is used; if no file exists for that stage, a
+randomized grid is generated instead. Tile colors are randomized per game.
+
+Example (`levels/01.txt`, a pyramid):
+
+```
+....11....
+...1221...
+..123321..
+.12333321.
+1233333321
+```
 
 ## Scoring
 
