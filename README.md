@@ -121,13 +121,13 @@ metadata. Use `DESTDIR` to stage into a packaging root
 A Flatpak manifest (`io.github.arturkos.Arkanoid.yaml`) and AppStream metadata
 (`io.github.arturkos.Arkanoid.metainfo.xml`) are included. The manifest builds
 Allegro 5 from source (it is not part of the freedesktop runtime) and then the
-game from the pinned `v1.0` git tag.
+game from a pinned git tag.
 
 #### Install the prebuilt bundle
 
 A single-file bundle (`arkanoid.flatpak`) is published with each
 [release](https://github.com/ArturKos/arkanoid/releases/latest)
-([direct download](https://github.com/ArturKos/arkanoid/releases/download/v1.0/arkanoid.flatpak)).
+([direct download](https://github.com/ArturKos/arkanoid/releases/latest/download/arkanoid.flatpak)).
 It contains only the app; the shared `org.freedesktop.Platform` runtime is
 pulled from Flathub on first install:
 
