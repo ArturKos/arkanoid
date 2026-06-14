@@ -16,7 +16,7 @@ A classic brick-breaker game built with **C++** and **Allegro 5**, featuring pow
 The game plays itself after a few seconds of inactivity on the intro (or with
 `--demo`): the paddle auto-tracks the ball and grabs falling power-ups.
 
-![Attract mode demo](screenshots/demo.gif)
+<p align="center"><img src="screenshots/demo.gif" alt="Attract mode demo"></p>
 
 ### After AI Refactoring
 
