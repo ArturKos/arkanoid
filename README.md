@@ -7,6 +7,7 @@ A classic brick-breaker game built with **C++** and **Allegro 5**, featuring pow
 ![CMake](https://img.shields.io/badge/CMake-3.2+-orange)
 ![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
+[![Latest release](https://img.shields.io/github/v/release/ArturKos/arkanoid)](https://github.com/ArturKos/arkanoid/releases/latest)
 
 ## Demo Videos
 
@@ -125,9 +126,10 @@ game from the pinned `v1.0` git tag.
 #### Install the prebuilt bundle
 
 A single-file bundle (`arkanoid.flatpak`) is published with each
-[release](https://github.com/ArturKos/arkanoid/releases). It contains only the
-app; the shared `org.freedesktop.Platform` runtime is pulled from Flathub on
-first install:
+[release](https://github.com/ArturKos/arkanoid/releases/latest)
+([direct download](https://github.com/ArturKos/arkanoid/releases/download/v1.0/arkanoid.flatpak)).
+It contains only the app; the shared `org.freedesktop.Platform` runtime is
+pulled from Flathub on first install:
 
 ```bash
 # one-time: make sure the Flathub remote is configured (for the runtime)
