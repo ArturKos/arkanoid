@@ -120,7 +120,24 @@ metadata. Use `DESTDIR` to stage into a packaging root
 A Flatpak manifest (`io.github.arturkos.Arkanoid.yaml`) and AppStream metadata
 (`io.github.arturkos.Arkanoid.metainfo.xml`) are included. The manifest builds
 Allegro 5 from source (it is not part of the freedesktop runtime) and then the
-game from the pinned `v1.0` git tag. To build and install locally:
+game from the pinned `v1.0` git tag.
+
+#### Install the prebuilt bundle
+
+A single-file bundle (`arkanoid.flatpak`) is published with each
+[release](https://github.com/ArturKos/arkanoid/releases). It contains only the
+app; the shared `org.freedesktop.Platform` runtime is pulled from Flathub on
+first install:
+
+```bash
+# one-time: make sure the Flathub remote is configured (for the runtime)
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+flatpak install --user arkanoid.flatpak
+flatpak run io.github.arturkos.Arkanoid
+```
+
+#### Build it yourself
 
 ```bash
 flatpak install flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
@@ -128,21 +145,12 @@ flatpak-builder --user --install --force-clean build-flatpak io.github.arturkos.
 flatpak run io.github.arturkos.Arkanoid
 ```
 
-#### Submitting to Flathub
+To regenerate the distributable bundle yourself:
 
-The manifest is submission-ready: its source is pinned to a git tag and commit,
-and the build installs the metainfo and renames the desktop file/icons to the
-app ID. To submit:
-
-1. Fork [`flathub/flathub`](https://github.com/flathub/flathub) and create a
-   branch named `io.github.arturkos.Arkanoid`.
-2. Add `io.github.arturkos.Arkanoid.yaml` (and the metainfo is pulled from the
-   pinned source automatically — no need to copy it).
-3. Open a pull request against the `flathub/flathub` repository; the build bot
-   and a reviewer take it from there.
-
-For each new release, bump the `tag`/`commit` in the manifest and add a
-`<release>` entry to the metainfo file.
+```bash
+flatpak-builder --user --repo=repo --force-clean build-flatpak io.github.arturkos.Arkanoid.yaml
+flatpak build-bundle repo arkanoid.flatpak io.github.arturkos.Arkanoid
+```
 
 ## How to Play
 

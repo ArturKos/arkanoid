@@ -1,0 +1,14 @@
+# Flatpak build artifacts (the bundle is published to GitHub Releases, not git)
+.flatpak-builder/
+build-flatpak/
+repo/
+*.flatpak
+
+# CMake build outputs (build/ also holds committed runtime assets)
+/build/CMakeCache.txt
+/build/CMakeFiles/
+/build/Makefile
+/build/cmake_install.cmake
+/build/install_manifest.txt
+/build/arkanoid
+/build/scores.dat
