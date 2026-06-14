@@ -36,6 +36,7 @@ class ball {
   int speed;
   trail_point trail[BALL_TRAIL_LENGTH];
   int trail_count;
+  bool on_fire;
 
  public:
   ball(int size);
@@ -43,14 +44,18 @@ class ball {
   int get_x();
   int get_y();
   int get_ry_move();
-  void make_ball_move(int x, int y, int rozm, float paddle_w_mult,
-                      bool *game_running, int *lives);
+  // Advances and draws the ball; returns 1 if it fell off the bottom this
+  // frame (the caller decides what that means for lives / ball count).
+  int make_ball_move(int x, int y, int rozm, float paddle_w_mult,
+                     bool game_running);
   void reverse_y();
   void reverse_x();
   void draw_ball();
   void draw_trail();
   void set_speed(int s);
   int get_speed();
+  void set_fire(bool f);
+  void set_velocity(int mx, int my);
 };
 
 // --- Single tile ---
@@ -85,14 +90,13 @@ class tiles {
   tile *game_tiles[TILES_IN_COLUMN * TILES_IN_ROW];
   std::vector<particle> particles;
   std::vector<powerup> powerups;
-  ball *game_ball;
   int size_width;
   int size_height;
 
  public:
-  tiles(int board_width, int board_height, ball *gball);
+  tiles(int board_width, int board_height);
   ~tiles();
-  int check_collisions(bool game_running, int *shake);
+  int check_collisions(ball *b, bool game_running, int *shake, bool fireball);
   bool game_over();
   void new_game();
   // Load layout from levels/NN.txt; falls back to a random grid if absent.

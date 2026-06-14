@@ -34,7 +34,7 @@ A classic brick-breaker game built with **C++** and **Allegro 5**, featuring pow
 - **10x5 tile grid** with randomized colors and a multi-hit HP system (up to 3 HP per tile)
 - **Beveled tile rendering** with highlight/shadow edges and visible crack lines as tiles take damage
 - **HP indicator dots** displayed on multi-hit tiles so the player can gauge remaining durability
-- **Three power-up types**: Wider paddle (W), Slow ball (S), and Extra life (+), each with a timed duration bar in the HUD
+- **Five power-up types**: Wider paddle (W), Slow ball (S), Extra life (+), Multiball (M), and Fireball (F), with timed effects shown as duration bars in the HUD
 - **Particle explosion system** with gravity, color variation, and fade-out when tiles are destroyed
 - **Ball trail effect** rendering a fading tail behind the ball as it moves
 - **Screen shake** triggered on tile destruction for visual impact
@@ -118,6 +118,8 @@ Make sure `background.png` is present in the working directory, then run:
 | Wider paddle | W (green) | Increases paddle width from 3x to 4.5x | 600 frames |
 | Slow ball | S (blue) | Halves ball speed | 600 frames |
 | Extra life | + (red) | Adds one life immediately | Instant |
+| Multiball | M (purple) | Spawns extra balls diverging from the current ball (capped at 6 on screen) | Instant |
+| Fireball | F (orange) | Ball burns through tiles without bouncing, destroying them in one pass | 600 frames |
 
 Power-ups have a 25% drop chance when a tile is destroyed. Active power-up timers are displayed as progress bars in the top-left HUD.
 

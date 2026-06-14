@@ -17,6 +17,7 @@ ball::ball(int size) {
   (void)size;
   speed = BALL_SPEED;
   trail_count = 0;
+  on_fire = false;
   new_game(0, 0, 0);
 }
 
@@ -27,6 +28,13 @@ void ball::new_game(int x, int y, int rozm) {
   ry_move = -speed;
   rx_move = (rand() % 2 == 0) ? speed : -speed;
   trail_count = 0;
+  on_fire = false;
+}
+
+void ball::set_fire(bool f) { on_fire = f; }
+void ball::set_velocity(int mx, int my) {
+  rx_move = mx;
+  ry_move = my;
 }
 
 int ball::get_x() { return rx; }
@@ -43,9 +51,9 @@ void ball::set_speed(int s) {
 
 int ball::get_speed() { return speed; }
 
-void ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
-                          bool *game_running, int *lives) {
-  if (*game_running) {
+int ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
+                         bool game_running) {
+  if (game_running) {
     // Store trail point
     if (trail_count < BALL_TRAIL_LENGTH) {
       trail[trail_count].x = (float)rx;
@@ -89,13 +97,10 @@ void ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
         rx_move = speed;
     }
 
-    // Ball fell off bottom
+    // Ball fell off bottom — report it; the caller manages lives/ball count
     if (ry > BOARD_HEIGHT) {
-      (*lives)--;
-      play_sound(SND_LIFE_LOST);
-      new_game(x, y, rozm);
-      *game_running = false;
       trail_count = 0;
+      return 1;
     }
 
     draw_trail();
@@ -107,9 +112,20 @@ void ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
     trail_count = 0;
     draw_ball();
   }
+  return 0;
 }
 
 void ball::draw_ball() {
+  if (on_fire) {
+    // Fiery ball: yellow-hot core with an orange halo
+    al_draw_filled_circle((float)rx, (float)ry, BALL_SIZE + 5,
+                          al_map_rgba(255, 140, 0, 70));
+    al_draw_filled_circle((float)rx, (float)ry, BALL_SIZE,
+                          al_map_rgba(255, 120, 0, 230));
+    al_draw_filled_circle((float)rx - 2, (float)ry - 2, BALL_SIZE * 0.6f,
+                          al_map_rgba(255, 240, 150, 220));
+    return;
+  }
   // Outer glow
   al_draw_filled_circle((float)rx, (float)ry, BALL_SIZE + 3,
                         al_map_rgba(255, 80, 20, 40));
@@ -245,8 +261,7 @@ void tile::draw_beveled() {
 //  Tiles container
 // ============================================================
 
-tiles::tiles(int board_width, int board_height, ball *gball) {
-  game_ball = gball;
+tiles::tiles(int board_width, int board_height) {
   size_width = board_width / TILES_IN_COLUMN;
   size_height = (int)(board_height * 0.4) / TILES_IN_ROW;
   int c = 0;
@@ -416,6 +431,16 @@ void tiles::draw_powerups(ALLEGRO_FONT *font) {
         fg = al_map_rgb(255, 255, 255);
         label = "+";
         break;
+      case POWERUP_MULTI:
+        bg = al_map_rgba(170, 60, 230, 220);
+        fg = al_map_rgb(255, 255, 255);
+        label = "M";
+        break;
+      case POWERUP_FIRE:
+        bg = al_map_rgba(255, 120, 0, 220);
+        fg = al_map_rgb(255, 255, 255);
+        label = "F";
+        break;
       default:
         bg = al_map_rgba(200, 200, 200, 220);
         fg = al_map_rgb(0, 0, 0);
@@ -459,77 +484,89 @@ int tiles::collect_powerup(float paddle_x, float paddle_y, float paddle_w,
 
 // --- Collision detection ---
 
-int tiles::check_collisions(bool game_running, int *shake) {
+int tiles::check_collisions(ball *b, bool game_running, int *shake,
+                            bool fireball) {
   int score = 0;
+  if (!game_running) return 0;
+
+  int bx = b->get_x();
+  int by = b->get_y();
 
   for (int i = 0; i < TILES_IN_COLUMN * TILES_IN_ROW; i++) {
     if (!game_tiles[i]->get_visible()) continue;
-    if (!game_running) continue;
 
-    int bx = game_ball->get_x();
-    int by = game_ball->get_y();
     int tx = game_tiles[i]->get_x();
     int ty = game_tiles[i]->get_y();
     int tw = size_width;
     int th = size_height;
-    bool collision = false;
 
-    // Vertical collision
-    if (bx + BALL_SIZE >= tx && bx - BALL_SIZE <= tx + tw &&
-        ((by - BALL_SIZE <= ty + th && by - BALL_SIZE >= ty) ||
-         (by + BALL_SIZE >= ty && by + BALL_SIZE <= ty + th))) {
-      game_ball->reverse_y();
-      collision = true;
-    } else
-    // Horizontal collision
-    if (by + BALL_SIZE >= ty && by - BALL_SIZE <= ty + th &&
-        ((bx - BALL_SIZE <= tx + tw && bx - BALL_SIZE >= tx) ||
-         (bx + BALL_SIZE >= tx && bx + BALL_SIZE <= tx + tw))) {
-      game_ball->reverse_x();
-      collision = true;
+    bool collide_v =
+        (bx + BALL_SIZE >= tx && bx - BALL_SIZE <= tx + tw &&
+         ((by - BALL_SIZE <= ty + th && by - BALL_SIZE >= ty) ||
+          (by + BALL_SIZE >= ty && by + BALL_SIZE <= ty + th)));
+    bool collide_h =
+        (by + BALL_SIZE >= ty && by - BALL_SIZE <= ty + th &&
+         ((bx - BALL_SIZE <= tx + tw && bx - BALL_SIZE >= tx) ||
+          (bx + BALL_SIZE >= tx && bx + BALL_SIZE <= tx + tw)));
+    if (!collide_v && !collide_h) continue;
+
+    // A fireball plows straight through without bouncing; a normal ball
+    // reflects (vertical takes precedence, matching the original feel).
+    if (!fireball) {
+      if (collide_v)
+        b->reverse_y();
+      else
+        b->reverse_x();
     }
 
-    if (collision) {
-      score += SCORE_PER_HIT;
-      bool destroyed = game_tiles[i]->hit();
-
-      if (destroyed) {
-        score += SCORE_PER_DESTROY;
-        *shake = SHAKE_FRAMES;
-        play_sound(SND_DESTROY);
-
-        unsigned char r, g, b;
-        game_tiles[i]->get_color(r, g, b);
-        spawn_particles(tx, ty, tw, th, r, g, b);
-
-        // Maybe drop a power-up
-        if (rand() % 100 < POWERUP_DROP_CHANCE) {
-          powerup pu;
-          pu.x = (float)(tx + tw / 2 - POWERUP_WIDTH / 2);
-          pu.y = (float)(ty + th);
-          pu.type = (rand() % POWERUP_TYPE_COUNT) + 1;
-          pu.active = true;
-          powerups.push_back(pu);
-        }
-      } else {
-        play_sound(SND_HIT);
-        // Small particle burst for hit (not destroy)
-        unsigned char r, g, b;
-        game_tiles[i]->get_color(r, g, b);
-        for (int j = 0; j < 6; j++) {
-          particle p;
-          p.x = (float)bx;
-          p.y = (float)by;
-          float angle = (float)(rand() % 360) * 3.14159f / 180.0f;
-          p.vx = cosf(angle) * 2.0f;
-          p.vy = sinf(angle) * 2.0f;
-          p.alpha = 0.7f;
-          p.r = r; p.g = g; p.b = b;
-          particles.push_back(p);
-        }
+    score += SCORE_PER_HIT;
+    bool destroyed;
+    if (fireball) {
+      while (!game_tiles[i]->hit()) {  // burn the tile down to zero HP at once
       }
-      break;
+      destroyed = true;
+    } else {
+      destroyed = game_tiles[i]->hit();
     }
+
+    if (destroyed) {
+      score += SCORE_PER_DESTROY;
+      *shake = SHAKE_FRAMES;
+      play_sound(SND_DESTROY);
+
+      unsigned char r, g, b2;
+      game_tiles[i]->get_color(r, g, b2);
+      spawn_particles(tx, ty, tw, th, r, g, b2);
+
+      // Maybe drop a power-up
+      if (rand() % 100 < POWERUP_DROP_CHANCE) {
+        powerup pu;
+        pu.x = (float)(tx + tw / 2 - POWERUP_WIDTH / 2);
+        pu.y = (float)(ty + th);
+        pu.type = (rand() % POWERUP_TYPE_COUNT) + 1;
+        pu.active = true;
+        powerups.push_back(pu);
+      }
+    } else {
+      play_sound(SND_HIT);
+      // Small particle burst for a hit that didn't destroy the tile
+      unsigned char r, g, b2;
+      game_tiles[i]->get_color(r, g, b2);
+      for (int j = 0; j < 6; j++) {
+        particle p;
+        p.x = (float)bx;
+        p.y = (float)by;
+        float angle = (float)(rand() % 360) * 3.14159f / 180.0f;
+        p.vx = cosf(angle) * 2.0f;
+        p.vy = sinf(angle) * 2.0f;
+        p.alpha = 0.7f;
+        p.r = r; p.g = g; p.b = b2;
+        particles.push_back(p);
+      }
+    }
+
+    // A bouncing ball resolves a single tile per frame; a fireball continues.
+    if (!fireball) break;
   }
   return score;
 }

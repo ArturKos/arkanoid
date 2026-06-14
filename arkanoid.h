@@ -31,8 +31,12 @@
 #define POWERUP_WIDER  1
 #define POWERUP_SLOW   2
 #define POWERUP_LIFE   3
-#define POWERUP_TYPE_COUNT 3
+#define POWERUP_MULTI  4
+#define POWERUP_FIRE   5
+#define POWERUP_TYPE_COUNT 5
 #define POWERUP_DURATION 600
+#define FIRE_DURATION 600
+#define MULTIBALL_ADD 2
 
 // Paddle
 #define PADDLE_SPEED 10

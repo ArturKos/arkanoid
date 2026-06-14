@@ -7,6 +7,7 @@
 #include <ctime>
 #include <cmath>
 #include <cstring>
+#include <vector>
 
 #include "arkanoid.h"
 #include "screen.h"
@@ -32,11 +33,20 @@ struct GameState {
   // Power-up timers
   int wider_timer = 0;
   int slow_timer = 0;
+  int fire_timer = 0;
   float paddle_w_mult = PADDLE_WIDTH_MULT;
 };
 
-ball game_ball(BALL_SIZE);
-tiles game_tiles(BOARD_WIDTH, BOARD_HEIGHT, &game_ball);
+std::vector<ball> balls;
+tiles game_tiles(BOARD_WIDTH, BOARD_HEIGHT);
+
+// Reset to a single ball resting on the paddle, honoring an active slow timer
+void reset_balls(const GameState &gs) {
+  balls.clear();
+  balls.push_back(ball(BALL_SIZE));
+  balls.back().new_game(gs.x, gs.y, gs.rozm);
+  if (gs.slow_timer > 0) balls.back().set_speed(BALL_SPEED / 2);
+}
 
 // --- Reset game state (keeps player name) ---
 void reset_game(GameState &gs) {
@@ -46,11 +56,11 @@ void reset_game(GameState &gs) {
   gs.game_running = false;
   gs.wider_timer = 0;
   gs.slow_timer = 0;
+  gs.fire_timer = 0;
   gs.paddle_w_mult = PADDLE_WIDTH_MULT;
   gs.gameover_sound_done = false;
-  game_ball.set_speed(BALL_SPEED);
   game_tiles.load_level(gs.poziom);
-  game_ball.new_game(gs.x, gs.y, gs.rozm);
+  reset_balls(gs);
 }
 
 // --- Draw HUD ---
@@ -81,6 +91,13 @@ void draw_hud(ALLEGRO_FONT *font, const GameState &gs) {
     al_draw_filled_rectangle(10, ind_y, 10 + frac * 80, ind_y + 8,
                              al_map_rgba(40, 100, 240, 180));
     al_draw_text(font, al_map_rgb(40, 100, 255), 95, ind_y - 2, 0, "SLOW");
+    ind_y += 14;
+  }
+  if (gs.fire_timer > 0) {
+    float frac = (float)gs.fire_timer / FIRE_DURATION;
+    al_draw_filled_rectangle(10, ind_y, 10 + frac * 80, ind_y + 8,
+                             al_map_rgba(255, 120, 0, 180));
+    al_draw_text(font, al_map_rgb(255, 140, 0), 95, ind_y - 2, 0, "FIRE");
   }
 }
 
@@ -207,7 +224,7 @@ int main() {
 
   // Load the first level layout and reset the ball onto the paddle
   game_tiles.load_level(gs.poziom);
-  game_ball.new_game(gs.x, gs.y, gs.rozm);
+  reset_balls(gs);
   double czas = al_get_time();
 
   while (!al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE)) {
@@ -248,8 +265,10 @@ int main() {
       draw_paddle(gs.x, gs.y, gs.paddle_w_mult, gs.rozm);
       game_tiles.draw_tiles();
       game_tiles.draw_powerups(font8);
-      game_ball.draw_trail();
-      game_ball.draw_ball();
+      for (auto &b : balls) {
+        b.draw_trail();
+        b.draw_ball();
+      }
       draw_hud(font8, gs);
       draw_pause_overlay(font8);
       end_frame(okno);
@@ -283,8 +302,10 @@ int main() {
     }
     if (gs.slow_timer > 0) {
       gs.slow_timer--;
-      if (gs.slow_timer == 0) game_ball.set_speed(BALL_SPEED);
+      if (gs.slow_timer == 0)
+        for (auto &b : balls) b.set_speed(BALL_SPEED);
     }
+    if (gs.fire_timer > 0) gs.fire_timer--;
 
     // --- Draw to buffer ---
     begin_frame();
@@ -310,10 +331,14 @@ int main() {
     // Paddle
     draw_paddle(gs.x, gs.y, gs.paddle_w_mult, gs.rozm);
 
-    // Tiles + collisions
+    // Tiles + collisions (each ball, fireball plows through when active)
     game_tiles.draw_tiles();
-    int gained = game_tiles.check_collisions(gs.game_running, &gs.shake_timer);
-    gs.score += gained;
+    bool fire_on = gs.fire_timer > 0;
+    for (auto &b : balls) {
+      b.set_fire(fire_on);
+      gs.score += game_tiles.check_collisions(&b, gs.game_running,
+                                              &gs.shake_timer, fire_on);
+    }
 
     // Particles
     game_tiles.update_and_draw_particles();
@@ -330,14 +355,38 @@ int main() {
       gs.paddle_w_mult = PADDLE_WIDER_MULT;
     } else if (pu == POWERUP_SLOW) {
       gs.slow_timer = POWERUP_DURATION;
-      game_ball.set_speed(BALL_SPEED / 2);
+      for (auto &b : balls) b.set_speed(BALL_SPEED / 2);
     } else if (pu == POWERUP_LIFE) {
       gs.lives++;
+    } else if (pu == POWERUP_MULTI) {
+      // Spawn extra balls diverging upward from the first ball, capped total
+      int spawn = MULTIBALL_ADD;
+      int speed = (gs.slow_timer > 0) ? BALL_SPEED / 2 : BALL_SPEED;
+      for (int i = 0; i < spawn && (int)balls.size() < 6; i++) {
+        ball nb = balls[0];
+        nb.set_velocity((i % 2 == 0) ? speed : -speed, -speed);
+        balls.push_back(nb);
+      }
+      gs.game_running = true;
+    } else if (pu == POWERUP_FIRE) {
+      gs.fire_timer = FIRE_DURATION;
     }
 
-    // Ball
-    game_ball.make_ball_move(gs.x, gs.y, gs.rozm, gs.paddle_w_mult,
-                             &gs.game_running, &gs.lives);
+    // Ball movement; drop balls that fell off the bottom
+    for (int i = (int)balls.size() - 1; i >= 0; i--) {
+      if (balls[i].make_ball_move(gs.x, gs.y, gs.rozm, gs.paddle_w_mult,
+                                  gs.game_running)) {
+        balls.erase(balls.begin() + i);
+      }
+    }
+    // Losing the last ball costs a life and re-arms a ball on the paddle
+    if (gs.game_running && balls.empty()) {
+      gs.lives--;
+      play_sound(SND_LIFE_LOST);
+      gs.game_running = false;
+      gs.fire_timer = 0;
+      reset_balls(gs);
+    }
 
     // Level complete
     if (game_tiles.game_over()) {
@@ -346,10 +395,10 @@ int main() {
       gs.poziom++;
       gs.wider_timer = 0;
       gs.slow_timer = 0;
+      gs.fire_timer = 0;
       gs.paddle_w_mult = PADDLE_WIDTH_MULT;
-      game_ball.set_speed(BALL_SPEED);
       game_tiles.load_level(gs.poziom);
-      game_ball.new_game(gs.x, gs.y, gs.rozm);
+      reset_balls(gs);
     }
 
     // HUD (no shake)
