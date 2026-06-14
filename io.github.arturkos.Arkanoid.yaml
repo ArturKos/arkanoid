@@ -51,10 +51,6 @@ modules:
           [ -f "$d/arkanoid.svg" ] && mv "$d/arkanoid.svg" "$d/io.github.arturkos.Arkanoid.svg"
         done
     sources:
-      # For local builds (`flatpak-builder`). For a Flathub submission, replace
-      # this with a `type: git` source pinned to a tag/commit, e.g.:
-      #   - type: git
-      #     url: https://github.com/ArturKos/arkanoid.git
-      #     tag: v1.0
-      - type: dir
-        path: .
+      - type: git
+        url: https://github.com/ArturKos/arkanoid.git
+        tag: v1.0
