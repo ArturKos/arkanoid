@@ -15,6 +15,7 @@
 #include "intro.h"
 #include "scores.h"
 #include "audio.h"
+#include "paths.h"
 
 // All mutable gameplay state, grouped so it can be reset, passed around, and
 // later persisted as a unit instead of living in scattered globals.
@@ -180,7 +181,7 @@ int main() {
 
   al_set_target_bitmap(al_get_backbuffer(okno));
 
-  background = al_load_bitmap(BACKGROUND_FILE);
+  background = al_load_bitmap(data_path(BACKGROUND_FILE).c_str());
   if (!background) {
     fprintf(stderr,
             "Error: Failed to load '%s'. "

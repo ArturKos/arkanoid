@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "audio.h"
+#include "paths.h"
 
 static ALLEGRO_SAMPLE *samples[SND_COUNT] = {0};
 static bool audio_ready = false;
@@ -26,7 +27,7 @@ void init_audio() {
   }
   al_reserve_samples(16);
   for (int i = 0; i < SND_COUNT; i++) {
-    samples[i] = al_load_sample(sound_files[i]);
+    samples[i] = al_load_sample(data_path(sound_files[i]).c_str());
     if (!samples[i])
       fprintf(stderr, "Warning: failed to load '%s'.\n", sound_files[i]);
   }

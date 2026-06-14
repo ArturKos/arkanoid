@@ -85,11 +85,33 @@ make -j$(nproc)
 
 ## Running
 
-Make sure `background.png` is present in the working directory, then run:
+Run from inside `build/`, where the assets (`background.png`, `sounds/`,
+`levels/`) live:
 
 ```bash
 ./arkanoid
 ```
+
+High scores are saved per-user to `$XDG_DATA_HOME/arkanoid/scores.dat`
+(falling back to `~/.local/share/arkanoid/scores.dat`); delete that file to
+reset the leaderboard.
+
+## Installing
+
+To install system-wide (for packaging or local use), build then run
+`make install`. Assets go to `<prefix>/share/arkanoid` and the binary looks
+them up there when they are not found in the working directory:
+
+```bash
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+make -j$(nproc)
+sudo make install
+```
+
+This installs the `arkanoid` binary, its data files under
+`/usr/share/arkanoid`, and a `arkanoid.desktop` menu entry. Use `DESTDIR` to
+stage into a packaging root (e.g. `make install DESTDIR=/tmp/pkg`).
 
 ## How to Play
 
@@ -175,9 +197,10 @@ remember HP values above `MAX_TILE_HP` (currently 3) are clamped down.
 
 ```
 arkanoid/
-├── CMakeLists.txt          # Build configuration with Allegro 5 pkg-config
+├── CMakeLists.txt          # Build configuration with Allegro 5 pkg-config + install rules
+├── LICENSE                 # MIT license
 ├── README.md               # This file
-├── background.png          # Background image (required at runtime)
+├── arkanoid.desktop        # Desktop menu entry (installed to share/applications)
 ├── arkanoid.h              # Global constants (board size, speeds, power-up config)
 ├── main.cpp                # Game loop, input handling, HUD drawing, paddle rendering
 ├── game_objects.h          # Ball, tile, tiles container, particle, power-up declarations
@@ -189,7 +212,14 @@ arkanoid/
 ├── scores.cpp              # Binary score file I/O, name prompt, game-over overlay
 ├── screen.h                # Off-screen buffer declarations
 ├── screen.cpp              # Resolution-independent rendering with aspect-ratio scaling
-└── build/                  # CMake build directory
+├── paths.h                 # Asset/user-data path resolution declarations
+├── paths.cpp               # FHS-aware path lookup (data dir vs XDG user dir)
+├── audio.h / audio.cpp     # Sound effect loading and playback
+├── tools/gen_sounds.py     # Procedural WAV sound generator
+└── build/                  # Build directory; also holds runtime assets
+    ├── background.png      #   background image
+    ├── sounds/             #   generated WAV sound effects
+    └── levels/             #   hand-designed level layouts
 ```
 
 ## License

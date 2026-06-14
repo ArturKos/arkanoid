@@ -8,6 +8,7 @@
 #include "arkanoid.h"
 #include "game_objects.h"
 #include "audio.h"
+#include "paths.h"
 
 // ============================================================
 //  Ball
@@ -305,9 +306,9 @@ void tiles::new_game() {
 }
 
 bool tiles::load_level(int level) {
-  char path[64];
-  snprintf(path, sizeof(path), "levels/%02d.txt", level);
-  FILE *f = fopen(path, "r");
+  char rel[64];
+  snprintf(rel, sizeof(rel), "levels/%02d.txt", level);
+  FILE *f = fopen(data_path(rel).c_str(), "r");
   if (!f) {
     new_game();  // no designed layout for this level — use a random grid
     return false;

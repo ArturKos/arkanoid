@@ -9,6 +9,7 @@
 #include "arkanoid.h"
 #include "screen.h"
 #include "scores.h"
+#include "paths.h"
 
 // ============================================================
 //  File I/O
@@ -16,7 +17,7 @@
 
 std::vector<score_entry> load_scores() {
   std::vector<score_entry> entries;
-  FILE *f = fopen(SCORES_FILE, "rb");
+  FILE *f = fopen(user_data_path(SCORES_FILE).c_str(), "rb");
   if (!f) return entries;
 
   score_entry e;
@@ -55,7 +56,7 @@ void save_score(const char *name, int sc, int level) {
   if ((int)entries.size() > MAX_HIGH_SCORES)
     entries.resize(MAX_HIGH_SCORES);
 
-  FILE *f = fopen(SCORES_FILE, "wb");
+  FILE *f = fopen(user_data_path(SCORES_FILE).c_str(), "wb");
   if (!f) return;
   for (auto &e : entries)
     fwrite(&e, sizeof(score_entry), 1, f);
