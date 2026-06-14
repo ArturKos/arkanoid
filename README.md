@@ -6,6 +6,7 @@ A classic brick-breaker game built with **C++** and **Allegro 5**, featuring pow
 ![Allegro](https://img.shields.io/badge/Allegro-5-green)
 ![CMake](https://img.shields.io/badge/CMake-3.2+-orange)
 ![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ## Demo Videos
 
@@ -193,7 +194,8 @@ arkanoid/
 
 ## License
 
-This project is provided as-is for educational purposes.
+Released under the [MIT License](LICENSE) — see the `LICENSE` file for the full
+text. Copyright (c) 2026 Artur Kos.
 
 ---
 
