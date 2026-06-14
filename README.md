@@ -143,6 +143,24 @@ Example (`levels/01.txt`, a pyramid):
 1233333321
 ```
 
+### Creating your own level
+
+1. Create a new file `levels/NN.txt` where `NN` is the two-digit stage number
+   (e.g. `06.txt` becomes the sixth stage). Numbering should be contiguous —
+   the first missing number falls back to a random grid for that stage and all
+   stages beyond it.
+2. Write exactly **5 lines** of **10 characters** each (rows top-to-bottom,
+   columns left-to-right — matching the on-screen 10×5 brick grid).
+3. Use `1`/`2`/`3` for a brick with that many hit points (a `3` brick must be
+   hit three times), and `.` for an empty cell. Any character other than
+   `1`–`9` is treated as empty, so spaces or `-` also work as gaps.
+4. Save the file next to the executable (under `build/levels/` for the standard
+   build) and start the game — no rebuild is needed, the layout is read at
+   runtime when that stage begins.
+
+Tips: keep at least one brick per file (an all-empty grid clears instantly), and
+remember HP values above `MAX_TILE_HP` (currently 3) are clamped down.
+
 ## Scoring
 
 | Event | Points |
