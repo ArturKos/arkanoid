@@ -41,10 +41,17 @@ modules:
     builddir: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
-    # Rename the generic desktop file and icons to the Flatpak app ID; this also
-    # rewrites the desktop file's Icon= key.
-    rename-icon: arkanoid
-    rename-desktop-file: arkanoid.desktop
+    # Flathub requires the desktop file and icons to be named after the app ID.
+    # (Done explicitly rather than via rename-icon/rename-desktop-file, which
+    # older flatpak-builder versions silently ignore.)
+    post-install:
+      - mv /app/share/applications/arkanoid.desktop /app/share/applications/io.github.arturkos.Arkanoid.desktop
+      - sed -i 's/^Icon=arkanoid$/Icon=io.github.arturkos.Arkanoid/' /app/share/applications/io.github.arturkos.Arkanoid.desktop
+      - |
+        for d in /app/share/icons/hicolor/*/apps; do
+          [ -f "$d/arkanoid.png" ] && mv "$d/arkanoid.png" "$d/io.github.arturkos.Arkanoid.png"
+          [ -f "$d/arkanoid.svg" ] && mv "$d/arkanoid.svg" "$d/io.github.arturkos.Arkanoid.svg"
+        done
     sources:
       - type: git
         url: https://github.com/ArturKos/arkanoid.git

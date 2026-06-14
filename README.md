@@ -110,16 +110,17 @@ sudo make install
 ```
 
 This installs the `arkanoid` binary, its data files under
-`/usr/share/arkanoid`, a `arkanoid.desktop` menu entry, and the application
-icon into the `hicolor` theme (16-256px plus a scalable SVG). Use `DESTDIR` to
-stage into a packaging root (e.g. `make install DESTDIR=/tmp/pkg`).
+`/usr/share/arkanoid`, a `arkanoid.desktop` menu entry, the application icon
+into the `hicolor` theme (16-256px plus a scalable SVG), and the AppStream
+metadata. Use `DESTDIR` to stage into a packaging root
+(e.g. `make install DESTDIR=/tmp/pkg`).
 
 ### Flatpak
 
 A Flatpak manifest (`io.github.arturkos.Arkanoid.yaml`) and AppStream metadata
 (`io.github.arturkos.Arkanoid.metainfo.xml`) are included. The manifest builds
 Allegro 5 from source (it is not part of the freedesktop runtime) and then the
-game. To build and install locally:
+game from the pinned `v1.0` git tag. To build and install locally:
 
 ```bash
 flatpak install flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
@@ -127,9 +128,21 @@ flatpak-builder --user --install --force-clean build-flatpak io.github.arturkos.
 flatpak run io.github.arturkos.Arkanoid
 ```
 
-The manifest uses a local `type: dir` source for development; for a Flathub
-submission switch it to a `type: git` source pinned to a release tag (see the
-comment in the manifest).
+#### Submitting to Flathub
+
+The manifest is submission-ready: its source is pinned to a git tag and commit,
+and the build installs the metainfo and renames the desktop file/icons to the
+app ID. To submit:
+
+1. Fork [`flathub/flathub`](https://github.com/flathub/flathub) and create a
+   branch named `io.github.arturkos.Arkanoid`.
+2. Add `io.github.arturkos.Arkanoid.yaml` (and the metainfo is pulled from the
+   pinned source automatically — no need to copy it).
+3. Open a pull request against the `flathub/flathub` repository; the build bot
+   and a reviewer take it from there.
+
+For each new release, bump the `tag`/`commit` in the manifest and add a
+`<release>` entry to the metainfo file.
 
 ## How to Play
 
