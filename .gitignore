@@ -12,3 +12,8 @@ repo/
 /build/install_manifest.txt
 /build/arkanoid
 /build/scores.dat
+
+# Autonomous agent workflow runtime state (local only)
+.workflow/
+__pycache__/
+*.pyc
