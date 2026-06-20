@@ -35,7 +35,7 @@ In priority order (T1 first).
 | T3 | **Catch / sticky paddle power-up** — classic Arkanoid "Catch": a power-up that makes the ball stick to the paddle on contact; the player releases it with a key (SPACE) or after a timeout. Handle reset/serve interaction and the multi-ball case. | 🔬 |
 | T4 | **More levels + progression** — add several new hand-designed level layouts (the `levels/` data the game loads) and smooth progression between them (level-cleared transition / brief "LEVEL n" banner), looping or ending gracefully after the last. | 🔬 |
 | T5 | **Game juice / feedback** — add screen-shake on brick break & ball loss, a short hit-flash/particle burst tuned per event, and richer audio cues (brick hit vs power-up collect vs life lost), without breaking the resolution-independent rendering. Make the intensity tasteful (configurable constants). | 🔬 |
-| T6 | **Pause menu + basic settings** — ESC pauses gameplay into an overlay menu (Resume / Restart / Quit) and a small settings panel: master volume and fullscreen/windowed toggle, persisted alongside the existing scores data via `paths.cpp`. | ⬜ |
+| T6 | **Pause menu + basic settings** — ESC pauses gameplay into an overlay menu (Resume / Restart / Quit) and a small settings panel: master volume and fullscreen/windowed toggle, persisted alongside the existing scores data via `paths.cpp`. | 🔬 |
 
 > All six are **gameplay/visual** features: the loop will implement + build them
 > clean, but mark them `🔬` (you play-test) — only you can confirm they look/feel right.
