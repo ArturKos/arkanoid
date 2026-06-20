@@ -55,6 +55,10 @@
 #define INITIAL_LIVES 3
 #define SCORE_PER_HIT 10
 #define SCORE_PER_DESTROY 50
+/** Total number of hand-designed levels; progression wraps after this. */
+#define LEVEL_COUNT 10
+/** Frames the level-start banner is displayed before fading out. */
+#define LEVEL_BANNER_FRAMES 90
 
 // Seconds of inactivity on the intro screen before the attract/demo kicks in
 #define INTRO_ATTRACT_SECONDS 15.0

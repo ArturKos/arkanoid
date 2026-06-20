@@ -40,6 +40,8 @@ struct GameState {
   int catch_timer = 0;
   float paddle_w_mult = PADDLE_WIDTH_MULT;
   bool space_prev = false;
+  /** Counts down from LEVEL_BANNER_FRAMES; banner is drawn while > 0. */
+  int level_banner_timer = 0;
 };
 
 std::vector<ball> balls;
@@ -67,6 +69,7 @@ void reset_game(GameState &gs) {
   gs.catch_timer = 0;
   gs.paddle_w_mult = PADDLE_WIDTH_MULT;
   gs.gameover_sound_done = false;
+  gs.level_banner_timer = LEVEL_BANNER_FRAMES;
   game_tiles.load_level(gs.poziom);
   reset_balls(gs);
 }
@@ -510,6 +513,7 @@ int main(int argc, char **argv) {
       play_sound(SND_LEVEL);
       gs.game_running = false;
       gs.poziom++;
+      if (gs.poziom > LEVEL_COUNT) gs.poziom = 1;  // wrap after last designed level
       gs.wider_timer = 0;
       gs.slow_timer = 0;
       gs.fire_timer = 0;
@@ -517,6 +521,7 @@ int main(int argc, char **argv) {
       gs.laser_cooldown = 0;
       gs.catch_timer = 0;
       gs.paddle_w_mult = PADDLE_WIDTH_MULT;
+      gs.level_banner_timer = LEVEL_BANNER_FRAMES;
       game_tiles.load_level(gs.poziom);
       reset_balls(gs);
     }
@@ -528,6 +533,18 @@ int main(int argc, char **argv) {
     if (ai_paddle)
       al_draw_text(font8, al_map_rgba(255, 255, 0, 200), BOARD_WIDTH / 2.0f,
                    BOARD_HEIGHT - 20.0f, ALLEGRO_ALIGN_CENTER, "DEMO");
+
+    // Level-start banner: fades out over LEVEL_BANNER_FRAMES frames
+    if (gs.level_banner_timer > 0) {
+      unsigned char alpha = (unsigned char)(255 * gs.level_banner_timer / LEVEL_BANNER_FRAMES);
+      float cx = BOARD_WIDTH / 2.0f;
+      float cy = BOARD_HEIGHT / 2.0f;
+      al_draw_filled_rectangle(cx - 140, cy - 28, cx + 140, cy + 28,
+                               al_map_rgba(0, 0, 0, alpha / 2));
+      al_draw_textf(font8, al_map_rgba(255, 220, 50, alpha),
+                    cx, cy - 4, ALLEGRO_ALIGN_CENTER, "LEVEL %d", gs.poziom);
+      gs.level_banner_timer--;
+    }
 
     // --- Stretch buffer to display ---
     end_frame(okno);
