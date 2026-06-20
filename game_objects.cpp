@@ -19,6 +19,8 @@ ball::ball(int size) {
   speed = BALL_SPEED;
   trail_count = 0;
   on_fire = false;
+  stuck = false;
+  stuck_offset = 0.0f;
   new_game(0, 0, 0);
 }
 
@@ -30,6 +32,16 @@ void ball::new_game(int x, int y, int rozm) {
   rx_move = (rand() % 2 == 0) ? speed : -speed;
   trail_count = 0;
   on_fire = false;
+  stuck = false;
+  stuck_offset = 0.0f;
+}
+
+bool ball::is_stuck() const { return stuck; }
+
+void ball::release() {
+  stuck = false;
+  // Ensure the ball travels upward when released from the paddle.
+  if (ry_move > 0) ry_move = -ry_move;
 }
 
 void ball::set_fire(bool f) { on_fire = f; }
@@ -53,8 +65,17 @@ void ball::set_speed(int s) {
 int ball::get_speed() { return speed; }
 
 int ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
-                         bool game_running) {
+                         bool game_running, bool catch_active) {
   if (game_running) {
+    // Stuck ball: glued to paddle top, no movement or collision.
+    if (stuck) {
+      rx = x + (int)stuck_offset;
+      ry = y - BALL_SIZE;
+      trail_count = 0;
+      draw_ball();
+      return 0;
+    }
+
     // Store trail point
     if (trail_count < BALL_TRAIL_LENGTH) {
       trail[trail_count].x = (float)rx;
@@ -88,14 +109,24 @@ int ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
     if (ry + BALL_SIZE >= y && ry + BALL_SIZE < y + rozm &&
         rx + BALL_SIZE >= x && rx - BALL_SIZE <= x + (int)pw &&
         get_ry_move() > 0) {
-      reverse_y();
-      play_sound(SND_PADDLE);
-      // Angle the ball based on where it hit the paddle
-      float hit_pos = ((float)(rx - x)) / pw;  // 0.0 = left, 1.0 = right
-      if (hit_pos < 0.3f)
-        rx_move = -speed;
-      else if (hit_pos > 0.7f)
-        rx_move = speed;
+      if (catch_active) {
+        // Catch: glue ball to paddle instead of bouncing.
+        stuck = true;
+        float offset = (float)(rx - x);
+        if (offset < (float)BALL_SIZE) offset = (float)BALL_SIZE;
+        if (offset > pw - (float)BALL_SIZE) offset = pw - (float)BALL_SIZE;
+        stuck_offset = offset;
+        play_sound(SND_PADDLE);
+      } else {
+        reverse_y();
+        play_sound(SND_PADDLE);
+        // Angle the ball based on where it hit the paddle
+        float hit_pos = ((float)(rx - x)) / pw;  // 0.0 = left, 1.0 = right
+        if (hit_pos < 0.3f)
+          rx_move = -speed;
+        else if (hit_pos > 0.7f)
+          rx_move = speed;
+      }
     }
 
     // Ball fell off bottom — report it; the caller manages lives/ball count
@@ -111,6 +142,7 @@ int ball::make_ball_move(int x, int y, int rozm, float paddle_w_mult,
     rx = x + pw / 2;
     ry = y - BALL_SIZE;
     trail_count = 0;
+    stuck = false;
     draw_ball();
   }
   return 0;
@@ -433,6 +465,7 @@ void tiles::draw_powerups() {
       case POWERUP_MULTI: cr = 170; cg = 60;  cb = 230; break;
       case POWERUP_FIRE:  cr = 255; cg = 120; cb = 0;   break;
       case POWERUP_LASER: cr = 0;   cg = 200; cb = 255; break;
+      case POWERUP_CATCH: cr = 255; cg = 215; cb = 0;   break;
       default:            cr = 200; cg = 200; cb = 200; break;
     }
 
@@ -550,6 +583,14 @@ void tiles::draw_powerups() {
         al_draw_filled_triangle(cx + 4.0f, cy - 4.0f,
                                 cx + 7.0f, cy - 4.0f,
                                 cx + 5.5f, cy - 7.0f, icon);
+        break;
+      }
+
+      case POWERUP_CATCH: {
+        // Cup / catcher: two side walls + a base (U-shape)
+        al_draw_filled_rectangle(cx - 6.0f, cy - 4.0f, cx - 4.0f, cy + 3.0f, icon);
+        al_draw_filled_rectangle(cx + 4.0f, cy - 4.0f, cx + 6.0f, cy + 3.0f, icon);
+        al_draw_filled_rectangle(cx - 6.0f, cy + 1.0f, cx + 6.0f, cy + 3.0f, icon);
         break;
       }
 

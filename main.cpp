@@ -37,7 +37,9 @@ struct GameState {
   int fire_timer = 0;
   int laser_timer = 0;
   int laser_cooldown = 0;
+  int catch_timer = 0;
   float paddle_w_mult = PADDLE_WIDTH_MULT;
+  bool space_prev = false;
 };
 
 std::vector<ball> balls;
@@ -62,6 +64,7 @@ void reset_game(GameState &gs) {
   gs.fire_timer = 0;
   gs.laser_timer = 0;
   gs.laser_cooldown = 0;
+  gs.catch_timer = 0;
   gs.paddle_w_mult = PADDLE_WIDTH_MULT;
   gs.gameover_sound_done = false;
   game_tiles.load_level(gs.poziom);
@@ -110,6 +113,13 @@ void draw_hud(ALLEGRO_FONT *font, const GameState &gs) {
     al_draw_filled_rectangle(10, ind_y, 10 + frac * 80, ind_y + 8,
                              al_map_rgba(0, 200, 255, 180));
     al_draw_text(font, al_map_rgb(0, 220, 255), 95, ind_y - 2, 0, "LASR");
+    ind_y += 14;
+  }
+  if (gs.catch_timer > 0) {
+    float frac = (float)gs.catch_timer / CATCH_DURATION;
+    al_draw_filled_rectangle(10, ind_y, 10 + frac * 80, ind_y + 8,
+                             al_map_rgba(255, 215, 0, 180));
+    al_draw_text(font, al_map_rgb(255, 220, 0), 95, ind_y - 2, 0, "CTCH");
   }
 }
 
@@ -334,6 +344,7 @@ int main(int argc, char **argv) {
         // (the one most likely to fall); but if a power-up is dropping and the
         // ball is not an immediate threat, go grab the power-up instead.
         gs.game_running = true;
+        for (auto &b : balls) if (b.is_stuck()) b.release();
         ball *target = nullptr;
         for (auto &b : balls)
           if (!target || b.get_y() > target->get_y()) target = &b;
@@ -364,12 +375,21 @@ int main(int argc, char **argv) {
           gs.y -= PADDLE_SPEED;
         if (al_key_down(&klawiatura, ALLEGRO_KEY_SPACE) && !gs.game_running)
           gs.game_running = true;
-        if (al_key_down(&klawiatura, ALLEGRO_KEY_SPACE) && gs.game_running &&
-            gs.laser_timer > 0 && gs.laser_cooldown == 0) {
-          float pw = gs.rozm * gs.paddle_w_mult;
-          game_tiles.fire_lasers((float)gs.x, pw, (float)gs.y);
-          gs.laser_cooldown = LASER_COOLDOWN;
-          play_sound(SND_PADDLE);
+        // Edge-detect SPACE: release any stuck balls first, else fire laser
+        {
+          bool space_now = al_key_down(&klawiatura, ALLEGRO_KEY_SPACE);
+          bool space_edge = space_now && !gs.space_prev;
+          gs.space_prev = space_now;
+          bool any_stuck = false;
+          for (auto &b : balls) if (b.is_stuck()) { any_stuck = true; break; }
+          if (space_edge && gs.game_running && any_stuck) {
+            for (auto &b : balls) if (b.is_stuck()) b.release();
+          } else if (space_now && gs.game_running && gs.laser_timer > 0 &&
+                     gs.laser_cooldown == 0) {
+            game_tiles.fire_lasers((float)gs.x, pw, (float)gs.y);
+            gs.laser_cooldown = LASER_COOLDOWN;
+            play_sound(SND_PADDLE);
+          }
         }
       }
       czas = al_get_time();
@@ -389,6 +409,11 @@ int main(int argc, char **argv) {
     if (gs.fire_timer > 0) gs.fire_timer--;
     if (gs.laser_timer > 0) gs.laser_timer--;
     if (gs.laser_cooldown > 0) gs.laser_cooldown--;
+    if (gs.catch_timer > 0) {
+      gs.catch_timer--;
+      if (gs.catch_timer == 0)
+        for (auto &b : balls) if (b.is_stuck()) b.release();
+    }
 
     // --- Draw to buffer ---
     begin_frame();
@@ -455,6 +480,8 @@ int main(int argc, char **argv) {
       gs.fire_timer = FIRE_DURATION;
     } else if (pu == POWERUP_LASER) {
       gs.laser_timer = LASER_DURATION;
+    } else if (pu == POWERUP_CATCH) {
+      gs.catch_timer = CATCH_DURATION;
     }
 
     // Laser bolts
@@ -464,7 +491,7 @@ int main(int argc, char **argv) {
     // Ball movement; drop balls that fell off the bottom
     for (int i = (int)balls.size() - 1; i >= 0; i--) {
       if (balls[i].make_ball_move(gs.x, gs.y, gs.rozm, gs.paddle_w_mult,
-                                  gs.game_running)) {
+                                  gs.game_running, gs.catch_timer > 0)) {
         balls.erase(balls.begin() + i);
       }
     }
@@ -474,6 +501,7 @@ int main(int argc, char **argv) {
       play_sound(SND_LIFE_LOST);
       gs.game_running = false;
       gs.fire_timer = 0;
+      gs.catch_timer = 0;
       reset_balls(gs);
     }
 
@@ -487,6 +515,7 @@ int main(int argc, char **argv) {
       gs.fire_timer = 0;
       gs.laser_timer = 0;
       gs.laser_cooldown = 0;
+      gs.catch_timer = 0;
       gs.paddle_w_mult = PADDLE_WIDTH_MULT;
       game_tiles.load_level(gs.poziom);
       reset_balls(gs);

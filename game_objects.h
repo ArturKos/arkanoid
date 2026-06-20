@@ -50,6 +50,8 @@ class ball {
   trail_point trail[BALL_TRAIL_LENGTH];
   int trail_count;
   bool on_fire;
+  bool stuck;          ///< True while the ball is glued to the paddle (CATCH).
+  float stuck_offset;  ///< Ball centre x relative to paddle left edge.
 
  public:
   ball(int size);
@@ -57,10 +59,15 @@ class ball {
   int get_x();
   int get_y();
   int get_ry_move();
+  /** @brief Returns true while the ball is caught/stuck to the paddle. */
+  bool is_stuck() const;
+  /** @brief Releases the ball from the paddle, ensuring upward travel. */
+  void release();
   // Advances and draws the ball; returns 1 if it fell off the bottom this
   // frame (the caller decides what that means for lives / ball count).
+  // @param catch_active  True while the CATCH power-up timer is running.
   int make_ball_move(int x, int y, int rozm, float paddle_w_mult,
-                     bool game_running);
+                     bool game_running, bool catch_active);
   void reverse_y();
   void reverse_x();
   void draw_ball();
