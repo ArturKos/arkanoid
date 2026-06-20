@@ -28,6 +28,19 @@ struct powerup {
   bool active;
 };
 
+/**
+ * @brief A single laser bolt fired by the paddle during POWERUP_LASER.
+ *
+ * Two bolts are spawned per SPACE press (one from each paddle edge).
+ * A bolt is erased on first tile contact or when it exits the top of the
+ * board; @c active flags it as in-flight.
+ */
+struct laser {
+  float x;     ///< Left edge of the bolt in logical screen coordinates.
+  float y;     ///< Top edge of the bolt in logical screen coordinates.
+  bool active; ///< True while the bolt is still travelling upward.
+};
+
 // --- Ball ---
 class ball {
  private:
@@ -90,6 +103,7 @@ class tiles {
   tile *game_tiles[TILES_IN_COLUMN * TILES_IN_ROW];
   std::vector<particle> particles;
   std::vector<powerup> powerups;
+  std::vector<laser> lasers;
   int size_width;
   int size_height;
 
@@ -112,6 +126,19 @@ class tiles {
   // For demo mode: the lowest (closest-to-paddle) active power-up. Returns
   // false if none are falling; otherwise fills its centre x and top y.
   bool lowest_powerup(float &out_cx, float &out_y);
+
+  /** @brief Fire two bolts from near the left and right edges of the paddle. */
+  void fire_lasers(float paddle_x, float paddle_w, float paddle_y);
+
+  /**
+   * @brief Move all active laser bolts upward and resolve tile collisions.
+   * @param shake Pointer to the screen-shake frame counter.
+   * @return Score gained from tile hits/destroys this frame.
+   */
+  int update_lasers(int *shake);
+
+  /** @brief Draw all active laser bolts onto the logical frame buffer. */
+  void draw_lasers();
 };
 
 #endif

@@ -303,6 +303,7 @@ void tiles::new_game() {
   }
   particles.clear();
   powerups.clear();
+  lasers.clear();
 }
 
 bool tiles::load_level(int level) {
@@ -349,6 +350,7 @@ bool tiles::load_level(int level) {
 
   particles.clear();
   powerups.clear();
+  lasers.clear();
   return true;
 }
 
@@ -430,6 +432,7 @@ void tiles::draw_powerups() {
       case POWERUP_LIFE:  cr = 230; cg = 40;  cb = 40;  break;
       case POWERUP_MULTI: cr = 170; cg = 60;  cb = 230; break;
       case POWERUP_FIRE:  cr = 255; cg = 120; cb = 0;   break;
+      case POWERUP_LASER: cr = 0;   cg = 200; cb = 255; break;
       default:            cr = 200; cg = 200; cb = 200; break;
     }
 
@@ -536,6 +539,20 @@ void tiles::draw_powerups() {
         break;
       }
 
+      case POWERUP_LASER: {
+        // Two vertical bolts suggesting laser beams
+        al_draw_filled_rectangle(cx - 5.0f, cy - 5.0f, cx - 3.0f, cy + 5.0f, icon);
+        al_draw_filled_rectangle(cx + 3.0f, cy - 5.0f, cx + 5.0f, cy + 5.0f, icon);
+        // Arrow tips pointing upward
+        al_draw_filled_triangle(cx - 7.0f, cy - 4.0f,
+                                cx - 4.0f, cy - 4.0f,
+                                cx - 5.5f, cy - 7.0f, icon);
+        al_draw_filled_triangle(cx + 4.0f, cy - 4.0f,
+                                cx + 7.0f, cy - 4.0f,
+                                cx + 5.5f, cy - 7.0f, icon);
+        break;
+      }
+
       default:
         break;
     }
@@ -571,6 +588,104 @@ bool tiles::lowest_powerup(float &out_cx, float &out_y) {
     }
   }
   return found;
+}
+
+// --- Laser ---
+
+void tiles::fire_lasers(float paddle_x, float paddle_w, float paddle_y) {
+  laser l;
+  l.active = true;
+  l.y = paddle_y - LASER_HEIGHT;
+
+  // Left bolt near the left paddle edge
+  l.x = paddle_x + 4.0f;
+  lasers.push_back(l);
+
+  // Right bolt near the right paddle edge
+  l.x = paddle_x + paddle_w - LASER_WIDTH - 4.0f;
+  lasers.push_back(l);
+}
+
+int tiles::update_lasers(int *shake) {
+  int score = 0;
+  for (int i = (int)lasers.size() - 1; i >= 0; i--) {
+    lasers[i].y -= LASER_SPEED;
+
+    if (lasers[i].y + LASER_HEIGHT < 0) {
+      lasers.erase(lasers.begin() + i);
+      continue;
+    }
+
+    float lx = lasers[i].x;
+    float ly = lasers[i].y;
+    bool hit_found = false;
+
+    for (int j = 0; j < TILES_IN_COLUMN * TILES_IN_ROW && !hit_found; j++) {
+      if (!game_tiles[j]->get_visible()) continue;
+      int tx = game_tiles[j]->get_x();
+      int ty = game_tiles[j]->get_y();
+      int tw = size_width;
+      int th = size_height;
+
+      if (lx < (float)(tx + tw) && lx + LASER_WIDTH > (float)tx &&
+          ly < (float)(ty + th) && ly + LASER_HEIGHT > (float)ty) {
+        score += SCORE_PER_HIT;
+        bool destroyed = game_tiles[j]->hit();
+        if (destroyed) {
+          score += SCORE_PER_DESTROY;
+          *shake = SHAKE_FRAMES;
+          play_sound(SND_DESTROY);
+          unsigned char r, g, b;
+          game_tiles[j]->get_color(r, g, b);
+          spawn_particles(tx, ty, tw, th, r, g, b);
+          if (rand() % 100 < POWERUP_DROP_CHANCE) {
+            powerup pu;
+            pu.x = (float)(tx + tw / 2 - POWERUP_WIDTH / 2);
+            pu.y = (float)(ty + th);
+            pu.type = (rand() % POWERUP_TYPE_COUNT) + 1;
+            pu.active = true;
+            powerups.push_back(pu);
+          }
+        } else {
+          play_sound(SND_HIT);
+          unsigned char r, g, b;
+          game_tiles[j]->get_color(r, g, b);
+          for (int k = 0; k < 6; k++) {
+            particle p;
+            p.x = lx + LASER_WIDTH / 2.0f;
+            p.y = ly;
+            float angle = (float)(rand() % 360) * 3.14159f / 180.0f;
+            p.vx = cosf(angle) * 2.0f;
+            p.vy = sinf(angle) * 2.0f;
+            p.alpha = 0.7f;
+            p.r = r; p.g = g; p.b = b;
+            particles.push_back(p);
+          }
+        }
+        lasers.erase(lasers.begin() + i);
+        hit_found = true;
+      }
+    }
+  }
+  return score;
+}
+
+void tiles::draw_lasers() {
+  for (size_t i = 0; i < lasers.size(); i++) {
+    const laser &lz = lasers[i];
+    // Cyan glow halo
+    al_draw_filled_rectangle(lz.x - 2.0f, lz.y - 2.0f,
+                             lz.x + LASER_WIDTH + 2.0f, lz.y + LASER_HEIGHT + 2.0f,
+                             al_map_rgba(0, 200, 255, 40));
+    // Bolt body
+    al_draw_filled_rectangle(lz.x, lz.y,
+                             lz.x + LASER_WIDTH, lz.y + LASER_HEIGHT,
+                             al_map_rgba(50, 220, 255, 230));
+    // Bright core
+    al_draw_filled_rectangle(lz.x + 1.0f, lz.y + 2.0f,
+                             lz.x + LASER_WIDTH - 1.0f, lz.y + LASER_HEIGHT - 2.0f,
+                             al_map_rgba(200, 255, 255, 200));
+  }
 }
 
 // --- Collision detection ---

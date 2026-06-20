@@ -35,6 +35,8 @@ struct GameState {
   int wider_timer = 0;
   int slow_timer = 0;
   int fire_timer = 0;
+  int laser_timer = 0;
+  int laser_cooldown = 0;
   float paddle_w_mult = PADDLE_WIDTH_MULT;
 };
 
@@ -58,6 +60,8 @@ void reset_game(GameState &gs) {
   gs.wider_timer = 0;
   gs.slow_timer = 0;
   gs.fire_timer = 0;
+  gs.laser_timer = 0;
+  gs.laser_cooldown = 0;
   gs.paddle_w_mult = PADDLE_WIDTH_MULT;
   gs.gameover_sound_done = false;
   game_tiles.load_level(gs.poziom);
@@ -99,6 +103,13 @@ void draw_hud(ALLEGRO_FONT *font, const GameState &gs) {
     al_draw_filled_rectangle(10, ind_y, 10 + frac * 80, ind_y + 8,
                              al_map_rgba(255, 120, 0, 180));
     al_draw_text(font, al_map_rgb(255, 140, 0), 95, ind_y - 2, 0, "FIRE");
+    ind_y += 14;
+  }
+  if (gs.laser_timer > 0) {
+    float frac = (float)gs.laser_timer / LASER_DURATION;
+    al_draw_filled_rectangle(10, ind_y, 10 + frac * 80, ind_y + 8,
+                             al_map_rgba(0, 200, 255, 180));
+    al_draw_text(font, al_map_rgb(0, 220, 255), 95, ind_y - 2, 0, "LASR");
   }
 }
 
@@ -353,6 +364,13 @@ int main(int argc, char **argv) {
           gs.y -= PADDLE_SPEED;
         if (al_key_down(&klawiatura, ALLEGRO_KEY_SPACE) && !gs.game_running)
           gs.game_running = true;
+        if (al_key_down(&klawiatura, ALLEGRO_KEY_SPACE) && gs.game_running &&
+            gs.laser_timer > 0 && gs.laser_cooldown == 0) {
+          float pw = gs.rozm * gs.paddle_w_mult;
+          game_tiles.fire_lasers((float)gs.x, pw, (float)gs.y);
+          gs.laser_cooldown = LASER_COOLDOWN;
+          play_sound(SND_PADDLE);
+        }
       }
       czas = al_get_time();
     }
@@ -369,6 +387,8 @@ int main(int argc, char **argv) {
         for (auto &b : balls) b.set_speed(BALL_SPEED);
     }
     if (gs.fire_timer > 0) gs.fire_timer--;
+    if (gs.laser_timer > 0) gs.laser_timer--;
+    if (gs.laser_cooldown > 0) gs.laser_cooldown--;
 
     // --- Draw to buffer ---
     begin_frame();
@@ -433,7 +453,13 @@ int main(int argc, char **argv) {
       gs.game_running = true;
     } else if (pu == POWERUP_FIRE) {
       gs.fire_timer = FIRE_DURATION;
+    } else if (pu == POWERUP_LASER) {
+      gs.laser_timer = LASER_DURATION;
     }
+
+    // Laser bolts
+    gs.score += game_tiles.update_lasers(&gs.shake_timer);
+    game_tiles.draw_lasers();
 
     // Ball movement; drop balls that fell off the bottom
     for (int i = (int)balls.size() - 1; i >= 0; i--) {
@@ -459,6 +485,8 @@ int main(int argc, char **argv) {
       gs.wider_timer = 0;
       gs.slow_timer = 0;
       gs.fire_timer = 0;
+      gs.laser_timer = 0;
+      gs.laser_cooldown = 0;
       gs.paddle_w_mult = PADDLE_WIDTH_MULT;
       game_tiles.load_level(gs.poziom);
       reset_balls(gs);

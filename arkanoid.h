@@ -33,9 +33,15 @@
 #define POWERUP_LIFE   3
 #define POWERUP_MULTI  4
 #define POWERUP_FIRE   5
-#define POWERUP_TYPE_COUNT 5
+#define POWERUP_LASER  6
+#define POWERUP_TYPE_COUNT 6
 #define POWERUP_DURATION 600
 #define FIRE_DURATION 600
+#define LASER_DURATION  600
+#define LASER_SPEED     9.0f
+#define LASER_COOLDOWN  12
+#define LASER_WIDTH     4
+#define LASER_HEIGHT    14
 #define MULTIBALL_ADD 2
 
 // Paddle
