@@ -106,7 +106,7 @@ class tiles {
                        unsigned char g, unsigned char b);
   void update_and_draw_particles();
   void update_powerups();
-  void draw_powerups(ALLEGRO_FONT *font);
+  void draw_powerups();
   int collect_powerup(float paddle_x, float paddle_y, float paddle_w,
                       float paddle_h);
   // For demo mode: the lowest (closest-to-paddle) active power-up. Returns

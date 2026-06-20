@@ -303,7 +303,7 @@ int main(int argc, char **argv) {
                             0, 0, BOARD_WIDTH, BOARD_HEIGHT, 0);
       draw_paddle(gs.x, gs.y, gs.paddle_w_mult, gs.rozm);
       game_tiles.draw_tiles();
-      game_tiles.draw_powerups(font8);
+      game_tiles.draw_powerups();
       for (auto &b : balls) {
         b.draw_trail();
         b.draw_ball();
@@ -408,7 +408,7 @@ int main(int argc, char **argv) {
 
     // Power-ups
     game_tiles.update_powerups();
-    game_tiles.draw_powerups(font8);
+    game_tiles.draw_powerups();
     int pu = game_tiles.collect_powerup((float)gs.x, (float)gs.y,
                                         gs.rozm * gs.paddle_w_mult,
                                         (float)gs.rozm);

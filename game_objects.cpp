@@ -410,60 +410,135 @@ void tiles::update_powerups() {
   }
 }
 
-void tiles::draw_powerups(ALLEGRO_FONT *font) {
-  for (size_t i = 0; i < powerups.size(); i++) {
-    powerup &pu = powerups[i];
-    ALLEGRO_COLOR bg, fg;
-    const char *label;
+/**
+ * Draw all falling power-up capsules with type-coloured aura, bevelled pill
+ * body, a per-type drawn icon and a short sparkle trail above each capsule.
+ * Animation phase is derived from al_get_time() and pu.x so capsules pulse
+ * independently without extra state.
+ */
+void tiles::draw_powerups() {
+  float now = (float)al_get_time();
 
+  for (size_t i = 0; i < powerups.size(); i++) {
+    const powerup &pu = powerups[i];
+
+    // Per-type base colour components
+    int cr, cg, cb;
     switch (pu.type) {
-      case POWERUP_WIDER:
-        bg = al_map_rgba(40, 200, 40, 220);
-        fg = al_map_rgb(255, 255, 255);
-        label = "W";
-        break;
-      case POWERUP_SLOW:
-        bg = al_map_rgba(40, 100, 240, 220);
-        fg = al_map_rgb(255, 255, 255);
-        label = "S";
-        break;
-      case POWERUP_LIFE:
-        bg = al_map_rgba(230, 40, 40, 220);
-        fg = al_map_rgb(255, 255, 255);
-        label = "+";
-        break;
-      case POWERUP_MULTI:
-        bg = al_map_rgba(170, 60, 230, 220);
-        fg = al_map_rgb(255, 255, 255);
-        label = "M";
-        break;
-      case POWERUP_FIRE:
-        bg = al_map_rgba(255, 120, 0, 220);
-        fg = al_map_rgb(255, 255, 255);
-        label = "F";
-        break;
-      default:
-        bg = al_map_rgba(200, 200, 200, 220);
-        fg = al_map_rgb(0, 0, 0);
-        label = "?";
-        break;
+      case POWERUP_WIDER: cr = 40;  cg = 200; cb = 40;  break;
+      case POWERUP_SLOW:  cr = 40;  cg = 100; cb = 240; break;
+      case POWERUP_LIFE:  cr = 230; cg = 40;  cb = 40;  break;
+      case POWERUP_MULTI: cr = 170; cg = 60;  cb = 230; break;
+      case POWERUP_FIRE:  cr = 255; cg = 120; cb = 0;   break;
+      default:            cr = 200; cg = 200; cb = 200; break;
     }
 
     float x1 = pu.x;
     float y1 = pu.y;
     float x2 = pu.x + POWERUP_WIDTH;
     float y2 = pu.y + POWERUP_HEIGHT;
+    float cx = (x1 + x2) * 0.5f;
+    float cy = (y1 + y2) * 0.5f;
 
-    // Rounded-ish pill shape
-    al_draw_filled_rectangle(x1, y1, x2, y2, bg);
-    al_draw_rectangle(x1, y1, x2, y2, al_map_rgba(255, 255, 255, 150), 1.5f);
-    // Pulsing glow
-    float glow = 0.5f + 0.5f * sinf(pu.y * 0.05f);
-    al_draw_filled_rectangle(x1 + 1, y1 + 1, x2 - 1, y2 - 1,
-                             al_map_rgba(255, 255, 255, (int)(glow * 40)));
+    // Unique phase per capsule so they don't all pulse in sync
+    float phase = pu.x * 0.13f;
+    float pulse = 0.5f + 0.5f * sinf(now * 4.0f + phase);
 
-    if (font)
-      al_draw_text(font, fg, (x1 + x2) / 2 - 3, y1 + 1, 0, label);
+    // (d) Sparkle trail — faint type-coloured dots fading above the capsule
+    for (int k = 1; k <= 3; k++) {
+      float dot_y   = y1 - (float)k * 5.0f;
+      float dot_a   = (55.0f - (float)k * 16.0f) * pulse;
+      if (dot_a < 4.0f) dot_a = 4.0f;
+      float dot_x   = cx + sinf(dot_y * 0.25f + phase) * 3.0f;
+      al_draw_filled_circle(dot_x, dot_y, 1.2f,
+                            al_map_rgba(cr, cg, cb, (int)dot_a));
+    }
+
+    // (a) Aura/glow behind the capsule — two concentric rounded rects at low alpha
+    int ga1 = (int)(20.0f + pulse * 45.0f);
+    int ga2 = (int)(35.0f + pulse * 55.0f);
+    al_draw_filled_rounded_rectangle(x1 - 5, y1 - 5, x2 + 5, y2 + 5,
+                                     7, 7, al_map_rgba(cr, cg, cb, ga1));
+    al_draw_filled_rounded_rectangle(x1 - 2, y1 - 2, x2 + 2, y2 + 2,
+                                     6, 6, al_map_rgba(cr, cg, cb, ga2));
+
+    // (b) Capsule body — dark base then tinted body, top-highlight, border
+    al_draw_filled_rounded_rectangle(x1, y1, x2, y2, 5, 5,
+                                     al_map_rgba(cr / 5, cg / 5, cb / 5, 230));
+    al_draw_filled_rounded_rectangle(x1 + 1, y1 + 1, x2 - 1, y2 - 1, 4, 4,
+                                     al_map_rgba(cr / 2, cg / 2, cb / 2, 220));
+
+    // Top highlight strip
+    int hr = cr + 100; if (hr > 255) hr = 255;
+    int hg = cg + 100; if (hg > 255) hg = 255;
+    int hb = cb + 100; if (hb > 255) hb = 255;
+    al_draw_filled_rectangle(x1 + 3, y1 + 2, x2 - 3, y1 + 5,
+                             al_map_rgba(hr, hg, hb, 110));
+    // Bottom shadow strip
+    al_draw_filled_rectangle(x1 + 3, y2 - 5, x2 - 3, y2 - 2,
+                             al_map_rgba(cr / 4, cg / 4, cb / 4, 80));
+
+    // Type-coloured border
+    al_draw_rounded_rectangle(x1, y1, x2, y2, 5, 5,
+                              al_map_rgba(cr, cg, cb, 240), 1.5f);
+
+    // (c) Per-type icon drawn with primitives, centred in the 30×14 pill
+    ALLEGRO_COLOR icon = al_map_rgba(240, 240, 240, 230);
+
+    switch (pu.type) {
+      case POWERUP_WIDER:
+        // Horizontal double-arrow <-->
+        al_draw_filled_triangle(cx - 10.0f, cy,
+                                cx -  6.0f, cy - 3.0f,
+                                cx -  6.0f, cy + 3.0f, icon);
+        al_draw_filled_triangle(cx + 10.0f, cy,
+                                cx +  6.0f, cy - 3.0f,
+                                cx +  6.0f, cy + 3.0f, icon);
+        al_draw_filled_rectangle(cx - 6.0f, cy - 1.0f,
+                                 cx + 6.0f, cy + 1.0f, icon);
+        break;
+
+      case POWERUP_SLOW:
+        // Hourglass: top triangle pointing down, bottom pointing up
+        al_draw_filled_triangle(cx - 5.0f, cy - 5.0f,
+                                cx + 5.0f, cy - 5.0f,
+                                cx,        cy,         icon);
+        al_draw_filled_triangle(cx - 5.0f, cy + 5.0f,
+                                cx + 5.0f, cy + 5.0f,
+                                cx,        cy,         icon);
+        al_draw_filled_circle(cx, cy, 1.0f, icon);
+        break;
+
+      case POWERUP_LIFE:
+        // Heart: two circles + downward triangle
+        al_draw_filled_circle(cx - 2.5f, cy - 1.0f, 2.5f, icon);
+        al_draw_filled_circle(cx + 2.5f, cy - 1.0f, 2.5f, icon);
+        al_draw_filled_triangle(cx - 5.0f, cy - 1.0f,
+                                cx + 5.0f, cy - 1.0f,
+                                cx,        cy + 4.5f, icon);
+        break;
+
+      case POWERUP_MULTI:
+        // Two balls side by side
+        al_draw_filled_circle(cx - 4.5f, cy, 3.0f, icon);
+        al_draw_filled_circle(cx + 4.5f, cy, 3.0f, icon);
+        break;
+
+      case POWERUP_FIRE: {
+        // Flame: large outer triangle + narrower bright inner triangle
+        al_draw_filled_triangle(cx - 5.0f, cy + 5.0f,
+                                cx + 5.0f, cy + 5.0f,
+                                cx,        cy - 5.0f, icon);
+        ALLEGRO_COLOR inner_flame = al_map_rgba(255, 255, 160, 210);
+        al_draw_filled_triangle(cx - 2.5f, cy + 5.0f,
+                                cx + 2.5f, cy + 5.0f,
+                                cx,        cy - 1.0f, inner_flame);
+        break;
+      }
+
+      default:
+        break;
+    }
   }
 }
 
