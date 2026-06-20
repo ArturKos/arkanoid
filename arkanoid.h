@@ -66,5 +66,11 @@
 // Screen shake
 #define SHAKE_FRAMES 10
 #define SHAKE_INTENSITY 5
+#define SHAKE_FRAMES_LOSS 16
+#define SHAKE_INTENSITY_LOSS 9
+
+// Hit flash
+#define FLASH_FRAMES 8
+#define FLASH_MAX_ALPHA 90
 
 #endif

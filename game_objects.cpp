@@ -647,7 +647,7 @@ void tiles::fire_lasers(float paddle_x, float paddle_w, float paddle_y) {
   lasers.push_back(l);
 }
 
-int tiles::update_lasers(int *shake) {
+int tiles::update_lasers(int *shake, int *flash) {
   int score = 0;
   for (int i = (int)lasers.size() - 1; i >= 0; i--) {
     lasers[i].y -= LASER_SPEED;
@@ -675,6 +675,7 @@ int tiles::update_lasers(int *shake) {
         if (destroyed) {
           score += SCORE_PER_DESTROY;
           *shake = SHAKE_FRAMES;
+          if (flash) *flash = FLASH_FRAMES;
           play_sound(SND_DESTROY);
           unsigned char r, g, b;
           game_tiles[j]->get_color(r, g, b);
@@ -731,7 +732,7 @@ void tiles::draw_lasers() {
 
 // --- Collision detection ---
 
-int tiles::check_collisions(ball *b, bool game_running, int *shake,
+int tiles::check_collisions(ball *b, bool game_running, int *shake, int *flash,
                             bool fireball) {
   int score = 0;
   if (!game_running) return 0;
@@ -779,6 +780,7 @@ int tiles::check_collisions(ball *b, bool game_running, int *shake,
     if (destroyed) {
       score += SCORE_PER_DESTROY;
       *shake = SHAKE_FRAMES;
+      if (flash) *flash = FLASH_FRAMES;
       play_sound(SND_DESTROY);
 
       unsigned char r, g, b2;

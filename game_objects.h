@@ -117,7 +117,18 @@ class tiles {
  public:
   tiles(int board_width, int board_height);
   ~tiles();
-  int check_collisions(ball *b, bool game_running, int *shake, bool fireball);
+  /**
+   * @brief Ball-vs-tile collision detection and resolution.
+   * @param b            The ball to test.
+   * @param game_running True while the game is actively running.
+   * @param shake        Screen-shake frame counter; set to SHAKE_FRAMES on destroy.
+   * @param flash        Hit-flash frame counter; set to FLASH_FRAMES on destroy.
+   *                     May be nullptr (e.g. demo/attract mode).
+   * @param fireball     True while the FIRE power-up is active.
+   * @return Score gained from hits and destroys this frame.
+   */
+  int check_collisions(ball *b, bool game_running, int *shake, int *flash,
+                       bool fireball);
   bool game_over();
   void new_game();
   // Load layout from levels/NN.txt; falls back to a random grid if absent.
@@ -139,10 +150,13 @@ class tiles {
 
   /**
    * @brief Move all active laser bolts upward and resolve tile collisions.
-   * @param shake Pointer to the screen-shake frame counter.
+   * @param shake Pointer to the screen-shake frame counter; set to SHAKE_FRAMES
+   *              on each tile destroy.
+   * @param flash Pointer to the hit-flash frame counter; set to FLASH_FRAMES on
+   *              each tile destroy.  May be nullptr.
    * @return Score gained from tile hits/destroys this frame.
    */
-  int update_lasers(int *shake);
+  int update_lasers(int *shake, int *flash);
 
   /** @brief Draw all active laser bolts onto the logical frame buffer. */
   void draw_lasers();

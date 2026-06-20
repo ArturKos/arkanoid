@@ -42,6 +42,8 @@ struct GameState {
   bool space_prev = false;
   /** Counts down from LEVEL_BANNER_FRAMES; banner is drawn while > 0. */
   int level_banner_timer = 0;
+  int flash_timer = 0;
+  unsigned char flash_r = 255, flash_g = 255, flash_b = 255;
 };
 
 std::vector<ball> balls;
@@ -70,6 +72,7 @@ void reset_game(GameState &gs) {
   gs.paddle_w_mult = PADDLE_WIDTH_MULT;
   gs.gameover_sound_done = false;
   gs.level_banner_timer = LEVEL_BANNER_FRAMES;
+  gs.flash_timer = 0;
   game_tiles.load_level(gs.poziom);
   reset_balls(gs);
 }
@@ -425,7 +428,14 @@ int main(int argc, char **argv) {
     ALLEGRO_TRANSFORM t;
     al_identity_transform(&t);
     if (gs.shake_timer > 0) {
-      float intensity = (float)gs.shake_timer / SHAKE_FRAMES * SHAKE_INTENSITY;
+      // Use loss-shake params while timer exceeds SHAKE_FRAMES so the
+      // stronger loss shake (SHAKE_FRAMES_LOSS/SHAKE_INTENSITY_LOSS) scales
+      // down correctly without overshooting the normal-shake formula.
+      float divisor = (gs.shake_timer > SHAKE_FRAMES) ? (float)SHAKE_FRAMES_LOSS
+                                                       : (float)SHAKE_FRAMES;
+      float max_i   = (gs.shake_timer > SHAKE_FRAMES) ? (float)SHAKE_INTENSITY_LOSS
+                                                       : (float)SHAKE_INTENSITY;
+      float intensity = (float)gs.shake_timer / divisor * max_i;
       float shx = (float)(rand() % (int)(intensity * 2 + 1)) - intensity;
       float shy = (float)(rand() % (int)(intensity * 2 + 1)) - intensity;
       al_translate_transform(&t, shx, shy);
@@ -445,10 +455,12 @@ int main(int argc, char **argv) {
     // Tiles + collisions (each ball, fireball plows through when active)
     game_tiles.draw_tiles();
     bool fire_on = gs.fire_timer > 0;
+    int prev_flash = gs.flash_timer;
     for (auto &b : balls) {
       b.set_fire(fire_on);
       gs.score += game_tiles.check_collisions(&b, gs.game_running,
-                                              &gs.shake_timer, fire_on);
+                                              &gs.shake_timer, &gs.flash_timer,
+                                              fire_on);
     }
 
     // Particles
@@ -488,8 +500,13 @@ int main(int argc, char **argv) {
     }
 
     // Laser bolts
-    gs.score += game_tiles.update_lasers(&gs.shake_timer);
+    gs.score += game_tiles.update_lasers(&gs.shake_timer, &gs.flash_timer);
     game_tiles.draw_lasers();
+
+    // If a destroy flash was newly armed by collisions, colour it white.
+    if (gs.flash_timer > prev_flash) {
+      gs.flash_r = 255; gs.flash_g = 255; gs.flash_b = 255;
+    }
 
     // Ball movement; drop balls that fell off the bottom
     for (int i = (int)balls.size() - 1; i >= 0; i--) {
@@ -505,6 +522,9 @@ int main(int argc, char **argv) {
       gs.game_running = false;
       gs.fire_timer = 0;
       gs.catch_timer = 0;
+      gs.shake_timer = SHAKE_FRAMES_LOSS;
+      gs.flash_timer = FLASH_FRAMES;
+      gs.flash_r = 255; gs.flash_g = 40; gs.flash_b = 40;
       reset_balls(gs);
     }
 
@@ -520,6 +540,7 @@ int main(int argc, char **argv) {
       gs.laser_timer = 0;
       gs.laser_cooldown = 0;
       gs.catch_timer = 0;
+      gs.flash_timer = 0;
       gs.paddle_w_mult = PADDLE_WIDTH_MULT;
       gs.level_banner_timer = LEVEL_BANNER_FRAMES;
       game_tiles.load_level(gs.poziom);
@@ -529,6 +550,15 @@ int main(int argc, char **argv) {
     // HUD (no shake)
     al_identity_transform(&t);
     al_use_transform(&t);
+
+    // Hit flash overlay: covers the full play area, fades out over FLASH_FRAMES
+    if (gs.flash_timer > 0) {
+      unsigned char fa = (unsigned char)(FLASH_MAX_ALPHA * gs.flash_timer / FLASH_FRAMES);
+      al_draw_filled_rectangle(0, 0, (float)BOARD_WIDTH, (float)BOARD_HEIGHT,
+                               al_map_rgba(gs.flash_r, gs.flash_g, gs.flash_b, fa));
+      gs.flash_timer--;
+    }
+
     draw_hud(font8, gs);
     if (ai_paddle)
       al_draw_text(font8, al_map_rgba(255, 255, 0, 200), BOARD_WIDTH / 2.0f,
