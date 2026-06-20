@@ -8,6 +8,7 @@
 
 static ALLEGRO_SAMPLE *samples[SND_COUNT] = {0};
 static bool audio_ready = false;
+static float master_volume = 1.0f;
 
 static const char *sound_files[SND_COUNT] = {
     "sounds/start.wav",     "sounds/paddle.wav",    "sounds/wall.wav",
@@ -34,9 +35,15 @@ void init_audio() {
   audio_ready = true;
 }
 
+void set_master_volume(float v) {
+  if (v < 0.0f) v = 0.0f;
+  if (v > 1.0f) v = 1.0f;
+  master_volume = v;
+}
+
 void play_sound(int id) {
   if (!audio_ready || id < 0 || id >= SND_COUNT || !samples[id]) return;
-  al_play_sample(samples[id], 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+  al_play_sample(samples[id], master_volume, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 }
 
 void destroy_audio() {

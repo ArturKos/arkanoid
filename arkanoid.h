@@ -73,4 +73,7 @@
 #define FLASH_FRAMES 8
 #define FLASH_MAX_ALPHA 90
 
+// Persisted data file names (resolved via user_data_path())
+#define SETTINGS_FILE "settings.dat"
+
 #endif

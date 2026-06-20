@@ -16,6 +16,7 @@
 #include "scores.h"
 #include "audio.h"
 #include "paths.h"
+#include "settings.h"
 
 // All mutable gameplay state, grouped so it can be reset, passed around, and
 // later persisted as a unit instead of living in scattered globals.
@@ -146,30 +147,6 @@ void draw_paddle(int px, int py, float w_mult, int rozm) {
   al_draw_rectangle(x1, y1, x2, y2, al_map_rgba(120, 140, 220, 200), 1.5f);
 }
 
-// --- Pause toggle ---
-bool paused = false;
-bool p_was_down = false;
-
-void toggle_pause(ALLEGRO_KEYBOARD_STATE *kb) {
-  bool p_down = al_key_down(kb, ALLEGRO_KEY_P);
-  if (p_down && !p_was_down) paused = !paused;
-  p_was_down = p_down;
-}
-
-// Draw a dimming overlay and centered "PAUSED" banner
-void draw_pause_overlay(ALLEGRO_FONT *font) {
-  al_draw_filled_rectangle(0, 0, BOARD_WIDTH, BOARD_HEIGHT,
-                           al_map_rgba(0, 0, 0, 140));
-  const char *title = "PAUSED";
-  const char *hint = "Press P to resume";
-  float cx = BOARD_WIDTH / 2.0f;
-  float cy = BOARD_HEIGHT / 2.0f;
-  al_draw_text(font, al_map_rgb(255, 255, 100), cx, cy - 20,
-               ALLEGRO_ALIGN_CENTER, title);
-  al_draw_text(font, al_map_rgba(200, 200, 220, 200), cx, cy + 4,
-               ALLEGRO_ALIGN_CENTER, hint);
-}
-
 // --- Fullscreen toggle ---
 bool fullscreen = false;
 bool f_was_down = false;
@@ -181,6 +158,161 @@ void toggle_fullscreen(ALLEGRO_DISPLAY *display, ALLEGRO_KEYBOARD_STATE *kb) {
     al_set_display_flag(display, ALLEGRO_FULLSCREEN_WINDOW, fullscreen);
   }
   f_was_down = f_down;
+}
+
+/** Actions the pause menu can return. */
+enum PauseAction { PA_RESUME, PA_RESTART, PA_QUIT };
+
+/** Pause-menu row indices. */
+enum { PM_RESUME = 0, PM_RESTART, PM_VOLUME, PM_FULLSCREEN, PM_QUIT, PM_COUNT };
+
+/**
+ * Run a blocking pause-menu overlay; returns the player's choice.
+ * Redraws the frozen game each frame before the menu, then processes
+ * UP/DOWN selection, ENTER to confirm, LEFT/RIGHT to adjust volume or
+ * toggle fullscreen, and ESC to resume. Saves settings before returning.
+ *
+ * @param display  Game window (used for al_set_display_flag).
+ * @param font     Builtin font for all menu text.
+ * @param bg       Background bitmap scaled to BOARD_WIDTH x BOARD_HEIGHT.
+ * @param gs       Frozen game state used for drawing only.
+ * @param settings Live settings; updated in-place and saved on return.
+ * @return The action chosen by the user.
+ */
+PauseAction run_pause_menu(ALLEGRO_DISPLAY *display, ALLEGRO_FONT *font,
+                           ALLEGRO_BITMAP *bg, GameState &gs,
+                           game_settings &settings) {
+  int sel = PM_RESUME;
+  bool up_prev = false, dn_prev = false;
+  bool left_prev = false, right_prev = false;
+  bool enter_prev = false;
+  bool esc_prev = true;  // ESC is held on entry (it triggered the menu)
+
+  for (;;) {
+    ALLEGRO_KEYBOARD_STATE kb;
+    al_get_keyboard_state(&kb);
+
+    bool up_now    = al_key_down(&kb, ALLEGRO_KEY_UP);
+    bool dn_now    = al_key_down(&kb, ALLEGRO_KEY_DOWN);
+    bool left_now  = al_key_down(&kb, ALLEGRO_KEY_LEFT);
+    bool right_now = al_key_down(&kb, ALLEGRO_KEY_RIGHT);
+    bool enter_now = al_key_down(&kb, ALLEGRO_KEY_ENTER);
+    bool esc_now   = al_key_down(&kb, ALLEGRO_KEY_ESCAPE);
+
+    if (up_now && !up_prev)
+      sel = (sel - 1 + PM_COUNT) % PM_COUNT;
+    if (dn_now && !dn_prev)
+      sel = (sel + 1) % PM_COUNT;
+
+    if (esc_now && !esc_prev) {
+      save_settings(settings);
+      return PA_RESUME;
+    }
+
+    if (enter_now && !enter_prev) {
+      if (sel == PM_RESUME)  { save_settings(settings); return PA_RESUME; }
+      if (sel == PM_RESTART) { save_settings(settings); return PA_RESTART; }
+      if (sel == PM_QUIT)    { save_settings(settings); return PA_QUIT; }
+      if (sel == PM_FULLSCREEN) {
+        settings.fullscreen = settings.fullscreen ? 0 : 1;
+        fullscreen = settings.fullscreen != 0;
+        al_set_display_flag(display, ALLEGRO_FULLSCREEN_WINDOW, fullscreen);
+      }
+    }
+
+    if (sel == PM_VOLUME) {
+      if (right_now && !right_prev) {
+        settings.master_volume += 0.1f;
+        if (settings.master_volume > 1.0f) settings.master_volume = 1.0f;
+        set_master_volume(settings.master_volume);
+      }
+      if (left_now && !left_prev) {
+        settings.master_volume -= 0.1f;
+        if (settings.master_volume < 0.0f) settings.master_volume = 0.0f;
+        set_master_volume(settings.master_volume);
+      }
+    }
+
+    if (sel == PM_FULLSCREEN) {
+      if ((left_now && !left_prev) || (right_now && !right_prev)) {
+        settings.fullscreen = settings.fullscreen ? 0 : 1;
+        fullscreen = settings.fullscreen != 0;
+        al_set_display_flag(display, ALLEGRO_FULLSCREEN_WINDOW, fullscreen);
+      }
+    }
+
+    up_prev    = up_now;
+    dn_prev    = dn_now;
+    left_prev  = left_now;
+    right_prev = right_now;
+    enter_prev = enter_now;
+    esc_prev   = esc_now;
+
+    // Redraw frozen game behind the dim overlay
+    begin_frame();
+    ALLEGRO_TRANSFORM tp;
+    al_identity_transform(&tp);
+    al_use_transform(&tp);
+    al_draw_scaled_bitmap(bg, 0, 0,
+                          (float)al_get_bitmap_width(bg),
+                          (float)al_get_bitmap_height(bg),
+                          0, 0, BOARD_WIDTH, BOARD_HEIGHT, 0);
+    draw_paddle(gs.x, gs.y, gs.paddle_w_mult, gs.rozm);
+    game_tiles.draw_tiles();
+    game_tiles.draw_powerups();
+    for (auto &b : balls) {
+      b.draw_trail();
+      b.draw_ball();
+    }
+    draw_hud(font, gs);
+
+    al_draw_filled_rectangle(0, 0, BOARD_WIDTH, BOARD_HEIGHT,
+                             al_map_rgba(0, 0, 0, 160));
+
+    float cx = BOARD_WIDTH / 2.0f;
+    float cy = BOARD_HEIGHT / 2.0f - 50.0f;
+    const float row_h = 22.0f;
+
+    al_draw_text(font, al_map_rgb(255, 220, 50), cx, cy - 22.0f,
+                 ALLEGRO_ALIGN_CENTER, "PAUSED");
+
+    for (int i = 0; i < PM_COUNT; i++) {
+      ALLEGRO_COLOR col = (i == sel)
+          ? al_map_rgb(255, 255, 255)
+          : al_map_rgba(180, 180, 200, 200);
+      float ry = cy + (float)i * row_h;
+
+      if (i == PM_RESUME) {
+        al_draw_text(font, col, cx, ry, ALLEGRO_ALIGN_CENTER, "Resume");
+      } else if (i == PM_RESTART) {
+        al_draw_text(font, col, cx, ry, ALLEGRO_ALIGN_CENTER, "Restart");
+      } else if (i == PM_VOLUME) {
+        int filled = (int)(settings.master_volume * 10.0f + 0.5f);
+        char bar[16] = "";
+        for (int j = 0; j < 10; j++)
+          bar[j] = (j < filled) ? '#' : '-';
+        bar[10] = '\0';
+        char text[32];
+        snprintf(text, sizeof(text), "Volume: [%s]", bar);
+        al_draw_text(font, col, cx, ry, ALLEGRO_ALIGN_CENTER, text);
+      } else if (i == PM_FULLSCREEN) {
+        char text[32];
+        snprintf(text, sizeof(text), "Fullscreen: %s",
+                 settings.fullscreen ? "On" : "Off");
+        al_draw_text(font, col, cx, ry, ALLEGRO_ALIGN_CENTER, text);
+      } else if (i == PM_QUIT) {
+        al_draw_text(font, col, cx, ry, ALLEGRO_ALIGN_CENTER, "Quit");
+      }
+
+      if (i == sel) {
+        al_draw_text(font, al_map_rgb(255, 255, 0),
+                     cx - 120.0f, ry, ALLEGRO_ALIGN_CENTER, ">");
+      }
+    }
+
+    end_frame(display);
+    al_rest(0.01);
+  }
 }
 
 // True if any keyboard key is currently held (used to leave attract mode).
@@ -213,6 +345,13 @@ int main(int argc, char **argv) {
   al_set_new_display_flags(ALLEGRO_RESIZABLE);
   ALLEGRO_DISPLAY *okno = al_create_display(BOARD_WIDTH, BOARD_HEIGHT);
   al_set_window_title(okno, "Arkanoid by Artur Kos");
+
+  game_settings settings = load_settings();
+  set_master_volume(settings.master_volume);
+  if (settings.fullscreen) {
+    fullscreen = true;
+    al_set_display_flag(okno, ALLEGRO_FULLSCREEN_WINDOW, true);
+  }
 
   create_game_buffer();
 
@@ -275,8 +414,8 @@ int main(int argc, char **argv) {
     bool attract_to_intro = attract && !demo_mode;
 
     reset_game(gs);
-    paused = false;
     double czas = al_get_time();
+    bool esc_prev = false;
 
   while (true) {
     al_get_keyboard_state(&klawiatura);
@@ -284,13 +423,23 @@ int main(int argc, char **argv) {
     // --- Exit conditions ---
     if (attract_to_intro) {
       if (any_key_down(&klawiatura)) break;  // back to the intro
-    } else if (al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE)) {
-      program_quit = true;
-      break;
+    } else {
+      bool esc_now = al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE);
+      if (!ai_paddle && esc_now && !esc_prev) {
+        PauseAction action =
+            run_pause_menu(okno, font8, background, gs, settings);
+        if (action == PA_RESTART) { reset_game(gs); esc_prev = false; continue; }
+        if (action == PA_QUIT) { program_quit = true; break; }
+        // PA_RESUME: continue gameplay
+      } else if (ai_paddle && esc_now) {
+        program_quit = true;
+        break;
+      }
+      esc_prev = esc_now;
     }
 
     toggle_fullscreen(okno, &klawiatura);
-    if (!ai_paddle) toggle_pause(&klawiatura);
+    settings.fullscreen = fullscreen ? 1 : 0;  // keep in sync for pause-menu save
 
     // --- Game over: show high scores ---
     if (gs.lives <= 0) {
@@ -315,30 +464,6 @@ int main(int argc, char **argv) {
         program_quit = true;
         break;
       }
-      continue;
-    }
-
-    // --- Paused: draw a frozen frame with overlay, skip all updates ---
-    if (paused) {
-      begin_frame();
-      ALLEGRO_TRANSFORM tp;
-      al_identity_transform(&tp);
-      al_use_transform(&tp);
-      al_draw_scaled_bitmap(background, 0, 0,
-                            (float)al_get_bitmap_width(background),
-                            (float)al_get_bitmap_height(background),
-                            0, 0, BOARD_WIDTH, BOARD_HEIGHT, 0);
-      draw_paddle(gs.x, gs.y, gs.paddle_w_mult, gs.rozm);
-      game_tiles.draw_tiles();
-      game_tiles.draw_powerups();
-      for (auto &b : balls) {
-        b.draw_trail();
-        b.draw_ball();
-      }
-      draw_hud(font8, gs);
-      draw_pause_overlay(font8);
-      end_frame(okno);
-      al_rest(0.01);
       continue;
     }
 

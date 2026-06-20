@@ -10,7 +10,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(ALLEGRO5 REQUIRED allegro-5 allegro_audio-5 allegro_acodec-5 allegro_font-5 allegro_image-5 allegro_primitives-5)
 
 add_executable(arkanoid
-  main.cpp game_objects.cpp intro.cpp scores.cpp screen.cpp audio.cpp paths.cpp)
+  main.cpp game_objects.cpp intro.cpp scores.cpp screen.cpp audio.cpp paths.cpp settings.cpp)
 target_link_libraries(arkanoid ${ALLEGRO5_LIBRARIES})
 target_include_directories(arkanoid PUBLIC ${ALLEGRO5_INCLUDE_DIRS})
 

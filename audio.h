@@ -20,4 +20,8 @@ void init_audio();
 void destroy_audio();
 void play_sound(int id);
 
+/** Set the gain applied to every subsequent al_play_sample call.
+ *  @param v Desired volume; clamped to [0,1]. */
+void set_master_volume(float v);
+
 #endif
