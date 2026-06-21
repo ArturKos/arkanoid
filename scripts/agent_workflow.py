@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-arkanoid autonomous multi-agent implementation workflow.
+bricktron autonomous multi-agent implementation workflow.
 
 A supervisor loop that drives six role-agents (each on its own model) through the
 pipeline:
@@ -206,7 +206,7 @@ def build_prompt(role: str, state: dict) -> str:
     parts = [
         f"You are the {role.upper()} agent. Iteration {state['iteration']}, "
         f"attempt {state['attempts']} for this task.",
-        "Work in the arkanoid repository (current directory). Read the docs "
+        "Work in the bricktron repository (current directory). Read the docs "
         "(ARCHITECTURE.md, CLAUDE.md, DECISIONS.md) as needed.",
     ]
     if role == "architect":
@@ -509,7 +509,7 @@ def run_loop(once: bool, dry_run: bool, max_iterations: int | None) -> int:
 # --------------------------------------------------------------------------- #
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="arkanoid autonomous agent workflow")
+    ap = argparse.ArgumentParser(description="bricktron autonomous agent workflow")
     ap.add_argument("--once", action="store_true", help="run a single stage then stop")
     ap.add_argument("--status", action="store_true", help="print current status and exit")
     ap.add_argument("--reset", action="store_true", help="clear state and start fresh")

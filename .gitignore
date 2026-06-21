@@ -10,7 +10,7 @@ repo/
 /build/Makefile
 /build/cmake_install.cmake
 /build/install_manifest.txt
-/build/arkanoid
+/build/bricktron
 /build/scores.dat
 
 # Autonomous agent workflow runtime state (local only)

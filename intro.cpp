@@ -5,12 +5,12 @@
 #include <cmath>
 #include <vector>
 
-#include "arkanoid.h"
+#include "bricktron.h"
 #include "screen.h"
 #include "intro.h"
 
 // ============================================================
-//  Pixel font for "ARKANOID" — each letter is 5 wide x 7 tall
+//  Pixel font for "BRICKTRON" — each letter is 5 wide x 7 tall
 // ============================================================
 
 #define PF_W 5

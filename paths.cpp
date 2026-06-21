@@ -4,8 +4,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifndef ARKANOID_DATA_DIR
-#define ARKANOID_DATA_DIR ""
+#ifndef BRICKTRON_DATA_DIR
+#define BRICKTRON_DATA_DIR ""
 #endif
 
 static bool file_exists(const std::string &p) {
@@ -25,7 +25,7 @@ static void mkdirs(const std::string &path) {
 
 std::string data_path(const std::string &rel) {
   if (file_exists(rel)) return rel;
-  std::string base = ARKANOID_DATA_DIR;
+  std::string base = BRICKTRON_DATA_DIR;
   if (!base.empty()) {
     std::string installed = base + "/" + rel;
     if (file_exists(installed)) return installed;
@@ -37,10 +37,10 @@ std::string user_data_path(const std::string &rel) {
   std::string base;
   const char *xdg = getenv("XDG_DATA_HOME");
   if (xdg && xdg[0]) {
-    base = std::string(xdg) + "/arkanoid";
+    base = std::string(xdg) + "/bricktron";
   } else {
     const char *home = getenv("HOME");
-    if (home && home[0]) base = std::string(home) + "/.local/share/arkanoid";
+    if (home && home[0]) base = std::string(home) + "/.local/share/bricktron";
   }
   if (base.empty()) return rel;  // no HOME: fall back to the current directory
   mkdirs(base);

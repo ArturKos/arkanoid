@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=Arkanoid
+Name=Bricktron
 Comment=Classic brick-breaker game with power-ups and particle effects
-Exec=arkanoid
-Icon=arkanoid
+Exec=bricktron
+Icon=bricktron
 Terminal=false
 Categories=Game;ArcadeGame;
-Keywords=arkanoid;breakout;arcade;brick;
+Keywords=bricktron;breakout;arcade;brick;

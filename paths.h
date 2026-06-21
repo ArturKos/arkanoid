@@ -5,11 +5,11 @@
 
 // Resolve a read-only data file (background, sounds, levels). Checks the current
 // directory first (dev builds run from build/), then the compiled-in install
-// data dir (e.g. /usr/share/arkanoid).
+// data dir (e.g. /usr/share/bricktron).
 std::string data_path(const std::string &rel);
 
 // Resolve a writable per-user file (high scores), creating the directory tree.
-// Uses $XDG_DATA_HOME/arkanoid, falling back to ~/.local/share/arkanoid.
+// Uses $XDG_DATA_HOME/bricktron, falling back to ~/.local/share/bricktron.
 std::string user_data_path(const std::string &rel);
 
 #endif

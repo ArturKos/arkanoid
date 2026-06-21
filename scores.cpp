@@ -6,7 +6,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "arkanoid.h"
+#include "bricktron.h"
 #include "screen.h"
 #include "scores.h"
 #include "paths.h"

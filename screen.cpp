@@ -1,5 +1,5 @@
 #include <allegro5/allegro.h>
-#include "arkanoid.h"
+#include "bricktron.h"
 #include "screen.h"
 
 static ALLEGRO_BITMAP *game_buffer = NULL;

@@ -1,4 +1,4 @@
-# Arkanoid
+# Bricktron
 
 A classic brick-breaker game built with **C++** and **Allegro 5**, featuring power-ups, particle effects, a ball trail system, persistent high scores, and a retro CRT-styled intro screen.
 
@@ -7,7 +7,7 @@ A classic brick-breaker game built with **C++** and **Allegro 5**, featuring pow
 ![CMake](https://img.shields.io/badge/CMake-3.2+-orange)
 ![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-[![Latest release](https://img.shields.io/github/v/release/ArturKos/arkanoid)](https://github.com/ArturKos/arkanoid/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/ArturKos/bricktron)](https://github.com/ArturKos/bricktron/releases/latest)
 
 ## Demo Videos
 
@@ -22,13 +22,13 @@ The game plays itself after a few seconds of inactivity on the intro (or with
 
 [**Watch on YouTube**](https://youtu.be/-k9hkdu4cm8)
 
-[![Arkanoid after AI improvements](https://img.youtube.com/vi/-k9hkdu4cm8/maxresdefault.jpg)](https://youtu.be/-k9hkdu4cm8)
+[![Bricktron after AI improvements](https://img.youtube.com/vi/-k9hkdu4cm8/maxresdefault.jpg)](https://youtu.be/-k9hkdu4cm8)
 
 ### Legacy Version
 
 [**Watch on YouTube**](https://youtu.be/IxjPidbq55g)
 
-[![Legacy Arkanoid](https://img.youtube.com/vi/IxjPidbq55g/maxresdefault.jpg)](https://youtu.be/IxjPidbq55g)
+[![Legacy Bricktron](https://img.youtube.com/vi/IxjPidbq55g/maxresdefault.jpg)](https://youtu.be/IxjPidbq55g)
 
 ## Screenshots
 
@@ -84,8 +84,8 @@ sudo dnf install allegro5-devel cmake pkg-config
 ## Building
 
 ```bash
-git clone https://github.com/ArturKos/arkanoid.git
-cd arkanoid
+git clone https://github.com/ArturKos/bricktron.git
+cd bricktron
 cd build
 cmake ..
 make -j$(nproc)
@@ -97,17 +97,17 @@ Run from inside `build/`, where the assets (`background.png`, `sounds/`,
 `levels/`) live:
 
 ```bash
-./arkanoid
+./bricktron
 ```
 
-High scores are saved per-user to `$XDG_DATA_HOME/arkanoid/scores.dat`
-(falling back to `~/.local/share/arkanoid/scores.dat`); delete that file to
+High scores are saved per-user to `$XDG_DATA_HOME/bricktron/scores.dat`
+(falling back to `~/.local/share/bricktron/scores.dat`); delete that file to
 reset the leaderboard.
 
 ## Installing
 
 To install system-wide (for packaging or local use), build then run
-`make install`. Assets go to `<prefix>/share/arkanoid` and the binary looks
+`make install`. Assets go to `<prefix>/share/bricktron` and the binary looks
 them up there when they are not found in the working directory:
 
 ```bash
@@ -117,24 +117,24 @@ make -j$(nproc)
 sudo make install
 ```
 
-This installs the `arkanoid` binary, its data files under
-`/usr/share/arkanoid`, a `arkanoid.desktop` menu entry, the application icon
+This installs the `bricktron` binary, its data files under
+`/usr/share/bricktron`, a `bricktron.desktop` menu entry, the application icon
 into the `hicolor` theme (16-256px plus a scalable SVG), and the AppStream
 metadata. Use `DESTDIR` to stage into a packaging root
 (e.g. `make install DESTDIR=/tmp/pkg`).
 
 ### Flatpak
 
-A Flatpak manifest (`io.github.arturkos.Arkanoid.yaml`) and AppStream metadata
-(`io.github.arturkos.Arkanoid.metainfo.xml`) are included. The manifest builds
+A Flatpak manifest (`io.github.arturkos.Bricktron.yaml`) and AppStream metadata
+(`io.github.arturkos.Bricktron.metainfo.xml`) are included. The manifest builds
 Allegro 5 from source (it is not part of the freedesktop runtime) and then the
 game from a pinned git tag.
 
 #### Install the prebuilt bundle
 
-A single-file bundle (`arkanoid.flatpak`) is published with each
-[release](https://github.com/ArturKos/arkanoid/releases/latest)
-([direct download](https://github.com/ArturKos/arkanoid/releases/latest/download/arkanoid.flatpak)).
+A single-file bundle (`bricktron.flatpak`) is published with each
+[release](https://github.com/ArturKos/bricktron/releases/latest)
+([direct download](https://github.com/ArturKos/bricktron/releases/latest/download/bricktron.flatpak)).
 It contains only the app; the shared `org.freedesktop.Platform` runtime is
 pulled from Flathub on first install:
 
@@ -142,23 +142,23 @@ pulled from Flathub on first install:
 # one-time: make sure the Flathub remote is configured (for the runtime)
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-flatpak install --user arkanoid.flatpak
-flatpak run io.github.arturkos.Arkanoid
+flatpak install --user bricktron.flatpak
+flatpak run io.github.arturkos.Bricktron
 ```
 
 #### Build it yourself
 
 ```bash
 flatpak install flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
-flatpak-builder --user --install --force-clean build-flatpak io.github.arturkos.Arkanoid.yaml
-flatpak run io.github.arturkos.Arkanoid
+flatpak-builder --user --install --force-clean build-flatpak io.github.arturkos.Bricktron.yaml
+flatpak run io.github.arturkos.Bricktron
 ```
 
 To regenerate the distributable bundle yourself:
 
 ```bash
-flatpak-builder --user --repo=repo --force-clean build-flatpak io.github.arturkos.Arkanoid.yaml
-flatpak build-bundle repo arkanoid.flatpak io.github.arturkos.Arkanoid
+flatpak-builder --user --repo=repo --force-clean build-flatpak io.github.arturkos.Bricktron.yaml
+flatpak build-bundle repo bricktron.flatpak io.github.arturkos.Bricktron
 ```
 
 ## How to Play
@@ -244,14 +244,14 @@ remember HP values above `MAX_TILE_HP` (currently 3) are clamped down.
 ## Project Structure
 
 ```
-arkanoid/
+bricktron/
 ├── CMakeLists.txt          # Build configuration with Allegro 5 pkg-config + install rules
 ├── LICENSE                 # MIT license
 ├── README.md               # This file
-├── arkanoid.desktop        # Desktop menu entry (installed to share/applications)
-├── arkanoid.svg            # App icon (source); rasterized copies under icons/
+├── bricktron.desktop        # Desktop menu entry (installed to share/applications)
+├── bricktron.svg            # App icon (source); rasterized copies under icons/
 ├── icons/hicolor/          # Themed icon set (16-256px PNG + scalable SVG)
-├── arkanoid.h              # Global constants (board size, speeds, power-up config)
+├── bricktron.h              # Global constants (board size, speeds, power-up config)
 ├── main.cpp                # Game loop, input handling, HUD drawing, paddle rendering
 ├── game_objects.h          # Ball, tile, tiles container, particle, power-up declarations
 ├── game_objects.cpp         # Ball physics, tile HP/rendering, collision detection,

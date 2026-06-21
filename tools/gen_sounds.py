@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate retro-style sound effects for arkanoid as 16-bit mono WAV files.
+"""Generate retro-style sound effects for bricktron as 16-bit mono WAV files.
 
 No external dependencies — uses only the standard library. Run from the repo
 root; writes into build/sounds/ next to the other runtime assets.

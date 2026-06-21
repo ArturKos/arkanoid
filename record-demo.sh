@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Record a hands-free Arkanoid demo to a video file. Launches the game in its
+# Record a hands-free Bricktron demo to a video file. Launches the game in its
 # built-in attract mode (--demo, the paddle plays itself), captures the game
 # window with ffmpeg/x11grab, then shuts the game down.
 #
 # Usage:
 #   ./record-demo.sh [-d SECONDS] [-o OUTPUT] [--flatpak] [--no-audio]
 #     -d SECONDS   recording length            (default 30)
-#     -o OUTPUT    output video file           (default arkanoid-demo.mp4)
-#     --flatpak    run the installed Flatpak instead of build/arkanoid
+#     -o OUTPUT    output video file           (default bricktron-demo.mp4)
+#     --flatpak    run the installed Flatpak instead of build/bricktron
 #     --no-audio   record video only
 #
 # Needs: ffmpeg (x11grab), xwininfo, wmctrl. Game audio is captured from the
@@ -15,11 +15,11 @@
 set -euo pipefail
 
 DURATION=30
-OUTPUT="arkanoid-demo.mp4"
+OUTPUT="bricktron-demo.mp4"
 USE_FLATPAK=0
 WITH_AUDIO=1
-APP_ID="io.github.arturkos.Arkanoid"
-TITLE="Arkanoid by Artur Kos"
+APP_ID="io.github.arturkos.Bricktron"
+TITLE="Bricktron by Artur Kos"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -50,11 +50,11 @@ if [ "$USE_FLATPAK" -eq 1 ]; then
   echo ">> Launching Flatpak $APP_ID --demo"
   flatpak run "$APP_ID" --demo &
 else
-  BIN="$ROOT/build/arkanoid"
+  BIN="$ROOT/build/bricktron"
   [ -x "$BIN" ] || { echo "ERROR: $BIN missing — build it first (see README)." >&2; exit 1; }
   echo ">> Launching $BIN --demo"
   # Run from build/ so the assets resolve via the current directory.
-  ( cd "$ROOT/build" && exec ./arkanoid --demo ) &
+  ( cd "$ROOT/build" && exec ./bricktron --demo ) &
 fi
 GAME_PID=$!
 

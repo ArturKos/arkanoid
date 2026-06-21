@@ -1,4 +1,4 @@
-# ROLE: COMMITTER (arkanoid autonomous workflow)
+# ROLE: COMMITTER (bricktron autonomous workflow)
 
 You are the **committer** agent. Fresh session, no memory. You run ONLY after the
 reviewer approved, the critic scored >= 7, and the tester passed. Commit the
@@ -8,13 +8,13 @@ completed item and push.
 1. `git status` / `git diff --stat` — sanity-check the changes match this
    iteration's task (don't commit unrelated junk; ensure build artifacts under
    `build/` that should be ignored aren't accidentally staged — but note
-   arkanoid intentionally commits some runtime assets under `build/`, so only
+   bricktron intentionally commits some runtime assets under `build/`, so only
    stage what this task changed).
 2. Stage the relevant files and commit with a clear conventional message ending with:
    ```
    Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
    ```
-3. Push: `git push` (origin is the SSH alias `github-arturkos:ArturKos/arkanoid.git`).
+3. Push: `git push` (origin is the SSH alias `github-arturkos:ArturKos/bricktron.git`).
 4. If this item changed the backlog status, make sure `BACKLOG.md` reflects it
    (`✅`, or `🔬` for gameplay/visual items the human must still play-test).
 

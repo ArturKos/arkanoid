@@ -9,7 +9,7 @@
 #include <cstring>
 #include <vector>
 
-#include "arkanoid.h"
+#include "bricktron.h"
 #include "screen.h"
 #include "game_objects.h"
 #include "intro.h"
@@ -344,7 +344,7 @@ int main(int argc, char **argv) {
   ALLEGRO_KEYBOARD_STATE klawiatura;
   al_set_new_display_flags(ALLEGRO_RESIZABLE);
   ALLEGRO_DISPLAY *okno = al_create_display(BOARD_WIDTH, BOARD_HEIGHT);
-  al_set_window_title(okno, "Arkanoid by Artur Kos");
+  al_set_window_title(okno, "Bricktron by Artur Kos");
 
   game_settings settings = load_settings();
   set_master_volume(settings.master_volume);

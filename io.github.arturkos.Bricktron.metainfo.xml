@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.arturkos.Arkanoid</id>
+  <id>io.github.arturkos.Bricktron</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
 
-  <name>Arkanoid</name>
+  <name>Bricktron</name>
   <summary>Classic brick-breaker arcade game</summary>
 
   <developer id="io.github.arturkos">
@@ -13,7 +13,7 @@
 
   <description>
     <p>
-      A polished take on the classic Arkanoid brick-breaker. Bounce the ball off
+      A polished take on the classic Bricktron brick-breaker. Bounce the ball off
       your paddle to smash a grid of destructible tiles, catch falling power-ups,
       and climb the high-score table.
     </p>
@@ -28,29 +28,29 @@
     </ul>
   </description>
 
-  <launchable type="desktop-id">io.github.arturkos.Arkanoid.desktop</launchable>
+  <launchable type="desktop-id">io.github.arturkos.Bricktron.desktop</launchable>
 
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/ArturKos/arkanoid/main/screenshots/gameplay.png</image>
+      <image>https://raw.githubusercontent.com/ArturKos/bricktron/main/screenshots/gameplay.png</image>
       <caption>Gameplay with the destructible tile grid</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/ArturKos/arkanoid/main/screenshots/intro.png</image>
+      <image>https://raw.githubusercontent.com/ArturKos/bricktron/main/screenshots/intro.png</image>
       <caption>Retro CRT-styled intro screen</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/ArturKos/arkanoid/main/screenshots/particles.png</image>
+      <image>https://raw.githubusercontent.com/ArturKos/bricktron/main/screenshots/particles.png</image>
       <caption>Particle explosion effects</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/ArturKos/arkanoid/main/screenshots/highscores.png</image>
+      <image>https://raw.githubusercontent.com/ArturKos/bricktron/main/screenshots/highscores.png</image>
       <caption>High score table</caption>
     </screenshot>
   </screenshots>
 
-  <url type="homepage">https://github.com/ArturKos/arkanoid</url>
-  <url type="bugtracker">https://github.com/ArturKos/arkanoid/issues</url>
+  <url type="homepage">https://github.com/ArturKos/bricktron</url>
+  <url type="bugtracker">https://github.com/ArturKos/bricktron/issues</url>
 
   <content_rating type="oars-1.1"/>
 

@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cstdio>
 
-#include "arkanoid.h"
+#include "bricktron.h"
 #include "game_objects.h"
 #include "audio.h"
 #include "paths.h"

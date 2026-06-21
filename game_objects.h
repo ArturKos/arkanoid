@@ -6,7 +6,7 @@
 #include <allegro5/allegro_font.h>
 #include <vector>
 
-#include "arkanoid.h"
+#include "bricktron.h"
 
 // --- Particle (improved explosion) ---
 struct particle {

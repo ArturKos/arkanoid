@@ -2,7 +2,7 @@
 #define SCREEN_H
 
 #include <allegro5/allegro.h>
-#include "arkanoid.h"
+#include "bricktron.h"
 
 void create_game_buffer();
 void destroy_game_buffer();

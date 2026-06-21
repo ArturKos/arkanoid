@@ -1,5 +1,5 @@
-#ifndef ARKANOID_H
-#define ARKANOID_H
+#ifndef BRICKTRON_H
+#define BRICKTRON_H
 
 // Board
 #define BOARD_WIDTH 1024

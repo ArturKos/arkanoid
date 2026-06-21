@@ -1,7 +1,7 @@
-# Autonomous multi-agent implementation workflow (arkanoid)
+# Autonomous multi-agent implementation workflow (bricktron)
 
 A supervisor loop that implements `BACKLOG.md` autonomously using six role-agents,
-each on its own model. Ported/adapted from the SoundShelf workflow for arkanoid
+each on its own model. Ported/adapted from the SoundShelf workflow for bricktron
 (C++11 + Allegro 5, CMake, **Linux-only**).
 
 ## Pipeline
@@ -19,7 +19,7 @@ committer pushes once all gates pass; the architect stops at `all_implemented`.
 
 **Definition of Done:** Doxygen on new public API · clean Linux build
 (`-Wall -Wextra -pedantic`, no new warnings) · tests where a target exists
-(arkanoid has none yet) · arkanoid conventions (see `CLAUDE.md`).
+(bricktron has none yet) · bricktron conventions (see `CLAUDE.md`).
 
 **GUI can't be loop-verified:** the tester is headless — no display, no audio. So
 gameplay/visual/audio items are marked **`🔬`** (code-complete, needs the human's
@@ -44,7 +44,7 @@ play-test), never `✅`. Flip `🔬`→`✅` only after you've played it.
    tail -f .workflow/progress.log  # timeline + verdicts
    ```
    Agents run with `--permission-mode bypassPermissions` (edit / build / push
-   without prompts). The committer pushes to `github-arturkos:ArturKos/arkanoid.git`.
+   without prompts). The committer pushes to `github-arturkos:ArturKos/bricktron.git`.
 
 ## Resilience
 

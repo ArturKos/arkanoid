@@ -1,6 +1,6 @@
 #include <cstdio>
 #include "settings.h"
-#include "arkanoid.h"
+#include "bricktron.h"
 #include "paths.h"
 
 game_settings load_settings() {

@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# Helper: prepare a Flathub submission PR for io.github.arturkos.Arkanoid.
+# Helper: prepare a Flathub submission PR for io.github.arturkos.Bricktron.
 #
 # ONE-TIME MANUAL STEP FIRST:
 #   Fork https://github.com/flathub/flathub on the GitHub website
 #   (button "Fork"). The script clones YOUR fork, not the upstream.
 #
 # After the script finishes, open the PR it prints:
-#   from branch  io.github.arturkos.Arkanoid
+#   from branch  io.github.arturkos.Bricktron
 #   onto branch  new-pr   in  flathub/flathub
 set -euo pipefail
 
-APP_ID="io.github.arturkos.Arkanoid"
+APP_ID="io.github.arturkos.Bricktron"
 MANIFEST="$(cd "$(dirname "$0")" && pwd)/${APP_ID}.yaml"
 
-# Your fork of flathub/flathub. Uses the same SSH host alias as the arkanoid
+# Your fork of flathub/flathub. Uses the same SSH host alias as the bricktron
 # remote (github-arturkos -> github.com/ArturKos). Change if you forked under
 # a different account.
 FORK_SSH="github-arturkos:ArturKos/flathub.git"
