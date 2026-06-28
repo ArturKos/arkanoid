@@ -20,9 +20,9 @@ The game plays itself after a few seconds of inactivity on the intro (or with
 
 ### After AI Refactoring
 
-[**Watch on YouTube**](https://youtu.be/-k9hkdu4cm8)
+[**Watch on YouTube**](https://youtu.be/WScvco9wCYo)
 
-[![Bricktron after AI improvements](https://img.youtube.com/vi/-k9hkdu4cm8/maxresdefault.jpg)](https://youtu.be/-k9hkdu4cm8)
+[![Bricktron after AI improvements](https://img.youtube.com/vi/WScvco9wCYo/maxresdefault.jpg)](https://youtu.be/WScvco9wCYo)
 
 ### Legacy Version
 
