@@ -13,6 +13,9 @@ repo/
 /build/bricktron
 /build/scores.dat
 
+# Raw demo recording (the GIF in screenshots/ is committed, not the source video)
+bricktron-demo.mp4
+
 # Autonomous agent workflow runtime state (local only)
 .workflow/
 __pycache__/
